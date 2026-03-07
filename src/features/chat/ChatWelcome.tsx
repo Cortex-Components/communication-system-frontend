@@ -33,14 +33,20 @@ export const ChatWelcome = ({ onClose, onOptionSelect, onChatWithUs }: ChatWelco
       </div>
 
       {/* Options */}
-      <div className="flex-1 px-5 pt-5 pb-4 flex flex-col overflow-y-auto">
-        <p className="text-sm text-muted-foreground mb-4">Please select an option below</p>
-        <div className="flex flex-col gap-3 items-center w-full px-1">
+      <div className="flex-1 px-5 pt-5 pb-4 flex flex-col min-h-0">
+        <p className="text-sm text-muted-foreground mb-4 shrink-0">Please select an option below</p>
+        
+        <div 
+          className="flex flex-col gap-3 items-center w-full px-1 overflow-y-auto shrink-0 pb-1"
+          style={{ 
+            maxHeight: `calc((${style.quickReplyHeight} * 4) + 36px)` 
+          }}
+        >
           {quickReplies.map((option) => (
             <button
               key={option}
               onClick={() => onOptionSelect(option)}
-              className={`w-full max-w-[368px] rounded-[18px] bg-cortex-cream text-cortex-black text-base font-medium hover:brightness-95 transition-all flex items-center justify-center text-center`}
+              className={`w-full max-w-[368px] shrink-0 rounded-[18px] bg-cortex-cream text-cortex-black text-base font-medium hover:brightness-95 transition-all flex items-center justify-center text-center`}
               style={{ height: style.quickReplyHeight }}
             >
               {option}
@@ -48,7 +54,7 @@ export const ChatWelcome = ({ onClose, onOptionSelect, onChatWithUs }: ChatWelco
           ))}
         </div>
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-4 shrink-0">
           <button
             onClick={onChatWithUs}
             className="w-full py-3.5 px-4 rounded-xl bg-cortex-button-gradient text-white text-[18px] hover:text-cortex-cream font-semibold  transition-all"

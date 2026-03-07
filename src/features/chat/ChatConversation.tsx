@@ -117,8 +117,8 @@ export const ChatConversation = ({ onBack, onClose, initialMessage }: ChatConver
             <div
               className={`max-w-[80%] px-4 py-3 text-sm leading-relaxed shadow-sm ${
                 msg.sender === "user"
-                  ? "bg-cortex-cream text-cortex-black rounded-2xl rounded-tr-none"
-                  : "bg-cortex-gray text-cortex-black rounded-2xl rounded-tl-none"
+                  ? "bg-cortex-gray text-cortex-black rounded-2xl rounded-tr-none"
+                  : "bg-cortex-cream text-cortex-black rounded-2xl rounded-tl-none"
               }`}
             >
               {msg.text}
