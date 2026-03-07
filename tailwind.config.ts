@@ -62,6 +62,7 @@ export default {
       backgroundImage: {
         'cortex-header-gradient': "var(--cortex-header-gradient)",
         'cortex-button-gradient': "var(--cortex-button-gradient)",
+        'cortex-icon-gradient': "var(--cortex-icon-gradient)",
       },
       borderRadius: {
         lg: "var(--radius)",

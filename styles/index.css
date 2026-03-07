@@ -75,6 +75,9 @@ All colors MUST be HSL.
     
     /* Custom Button Gradient */
     --cortex-button-gradient: linear-gradient(270deg, #DDD8BB 0%, #858B89 50%, #37475C 100%);
+
+    /* Custom Icon Gradient */
+    --cortex-icon-gradient: linear-gradient(90deg, #DBD6BA 0%, #949791 15.87%, #3A495E 68.27%);
   }
 
   .dark {

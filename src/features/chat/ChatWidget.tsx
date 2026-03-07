@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import ChatIcon from "../../assets/chatwidget.svg";
 import { ChatWelcome } from "./ChatWelcome";
 import { ChatConversation } from "./ChatConversation";
 import { CHAT_CONFIG } from "./config";
@@ -55,9 +55,9 @@ const ChatWidget = () => {
       {view === "closed" && (
         <button
           onClick={() => setView("welcome")}
-          className={`${layout.bubbleWidth} ${layout.bubbleHeight} rounded-full bg-cortex-header-gradient shadow-lg flex items-center justify-center  transition-transform ${layout.zIndex.bubble}`}
+          className={`${layout.bubbleWidth} ${layout.bubbleHeight} pt-1 rounded-xl bg-cortex-header-gradient shadow-lg flex items-center justify-center  transition-transform ${layout.zIndex.bubble}`}
         >
-          <MessageCircle className="w-6 h-6 text-white" />
+          <img src={ChatIcon} alt="Chat" className="w-9 h-9" />
         </button>
       )}
     </div>
