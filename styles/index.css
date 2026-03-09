@@ -68,7 +68,7 @@ All colors MUST be HSL.
     --cortex-tan: 32 45% 70%;
     --cortex-cream: 49 64% 86%;
     --cortex-white: 0 0% 100%;
-    --cortex-gray: 0 0% 87%;
+    --cortex-gray: 0 0% 85%;
 
     /* Custom Header Gradient */
     --cortex-header-gradient: linear-gradient(360deg, #DDD8BB -68.13%, #858B89 15.94%, #37475C 100%);

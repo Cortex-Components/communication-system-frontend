@@ -56,7 +56,7 @@ export default {
           tan: "#D5B691",
           cream: "#F2E9C3",
           white: "#FFFFFF",
-          gray: "#DEDEDE",
+          gray: "#D9D9D9",
         },
       },
       backgroundImage: {
