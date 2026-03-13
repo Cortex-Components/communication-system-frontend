@@ -96,18 +96,18 @@ export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, on
                      <button
                       key={chat.chat_id}
                       onClick={() => onChatSelect(chat.chat_id)}
-                      className="w-full text-left bg-white border border-slate-100 rounded-xl p-4 hover:border-blue-200 hover:bg-blue-50/30 transition-all group shadow-sm"
+                      className="w-full text-left bg-white border border-slate-100 rounded-xl p-4 hover:border-[#2B3D55] hover:bg-blue-50/30 transition-all group shadow-sm"
                      >
                        <div className="flex items-start justify-between">
                          <div className="flex gap-3">
-                           <div className="mt-1 w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                             <MessageSquare className="w-4 h-4 text-blue-500" />
+                           <div className="mt-1 w-8 h-8 rounded-lg bg-cortex-cream flex items-center justify-center shrink-0">
+                             <MessageSquare className="w-4 h-4 text-[#2B3D55]" />
                            </div>
                            <div className="min-w-0">
-                             <p className="font-semibold text-[15px] text-slate-700 truncate group-hover:text-blue-600">
+                             <p className="font-semibold text-[15px] text-[#2B3D55] truncate ">
                                {chat.title}
                              </p>
-                             <p className="text-xs text-slate-400 mt-0.5 flex items-center">
+                             <p className="text-xs text-[#737373] mt-0.5 flex items-center">
                                <Clock className="w-3 h-3 mr-1" />
                                {new Date(chat.updated_at).toLocaleDateString()}
                              </p>
