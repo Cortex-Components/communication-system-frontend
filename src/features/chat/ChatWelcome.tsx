@@ -68,7 +68,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
           </p>
           <button 
             onClick={onRequestChange}
-            className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[12px] sm:text-[14px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
+            className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[11px] sm:text-[12px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
           >
             Request a change
           </button>

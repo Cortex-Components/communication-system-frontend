@@ -104,7 +104,7 @@ export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, on
                              <MessageSquare className="w-4 h-4 text-[#2B3D55]" />
                            </div>
                            <div className="min-w-0">
-                             <p className="font-semibold text-[15px] text-[#2B3D55] truncate ">
+                             <p className="font-semibold text-[15px] text-[#2B3D55] truncate">
                                {chat.title}
                              </p>
                              <p className="text-xs text-[#737373] mt-0.5 flex items-center">
