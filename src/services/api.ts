@@ -14,8 +14,8 @@ export class ApiClient {
     return this.config.baseUrl;
   }
 
-  getEndpoint(page: "home" | "support", endpoint: string, params: Record<string, string | number> = {}): string {
-    const pageVal = this.config.pageEndpoints[page];
+  getEndpoint(page: string, endpoint: string, params: Record<string, string | number> = {}): string {
+    const pageVal = this.config.pageEndpoints[page] || page;
     let resolvedEndpoint = this.config.endpoints[endpoint] || endpoint;
     
     // Replace {page} placeholder
@@ -29,7 +29,7 @@ export class ApiClient {
     return resolvedEndpoint;
   }
 
-  async get<T>(page: "home" | "support", endpoint: string, params: Record<string, string | number> = {}): Promise<T> {
+  async get<T>(page: string, endpoint: string, params: Record<string, string | number> = {}): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
     const response = await fetch(`${this.baseUrl}${fullPath}`);
     if (!response.ok) {
@@ -38,7 +38,7 @@ export class ApiClient {
     return response.json();
   }
 
-  async post<T>(page: "home" | "support", endpoint: string, data: unknown, params: Record<string, string | number> = {}): Promise<T> {
+  async post<T>(page: string, endpoint: string, data: unknown, params: Record<string, string | number> = {}): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
     const response = await fetch(`${this.baseUrl}${fullPath}`, {
       method: 'POST',

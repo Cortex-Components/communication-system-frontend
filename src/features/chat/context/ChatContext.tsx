@@ -6,7 +6,7 @@ import { ChatService } from '@/services/chat-service';
 export interface ChatContextType {
   config: ChatConfig;
   role: 'dev' | 'user';
-  currentPage: 'home' | 'support';
+  currentPage: string;
   apiClient: ApiClient;
   chatService: ChatService;
 }

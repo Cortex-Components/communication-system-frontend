@@ -15,7 +15,7 @@ export type ChatView = "closed" | "welcome" | "follow-up" | "change-requests" | 
 
 interface ChatWidgetProps {
   role?: "dev" | "user";
-  currentPage?: "home" | "support";
+  currentPage?: string;
   config?: Partial<ChatConfig>;
 }
 

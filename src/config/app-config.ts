@@ -3,10 +3,7 @@ export interface ApiConfig {
   endpoints: {
     [key: string]: string;
   };
-  pageEndpoints: {
-    home: string;
-    support: string;
-  };
+  pageEndpoints: Record<string, string>;
 }
 
 

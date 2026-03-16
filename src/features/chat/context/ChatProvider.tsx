@@ -7,7 +7,7 @@ import { ChatContext } from './ChatContext';
 export const ChatProvider: React.FC<{
   config?: Partial<ChatConfig>;
   role?: 'dev' | 'user';
-  currentPage?: 'home' | 'support';
+  currentPage?: string;
   children: React.ReactNode;
 }> = ({ config, role = 'dev', currentPage = 'home', children }) => {
   // Merge provided config with default CHAT_CONFIG
