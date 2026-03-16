@@ -41,6 +41,20 @@ export interface UserMessage {
   created_at: string;
 }
 
+export interface EscalationRequest {
+  user_id: number;
+  session_id: string;
+  status?: "pending" | "fixed" | "closed";
+  priority: "high" | "normal" | "low";
+}
+
+export interface EscalationResponse {
+  user_id: number;
+  session_id: string;
+  status: "pending" | "fixed" | "closed";
+  priority: "high" | "normal" | "low";
+}
+
 export interface ChatConfig {
 
 
@@ -169,11 +183,16 @@ export const APP_CONFIG: AppConfig = {
 
     endpoints: {
       faqs: "/page/{page}/faqs",
+      faq_details: "/faqs/{faq_id}",
       user_chats: "/user_chats/{user_id}",
       user_chat: "/user_chat/{user_id}/{chat_id}",
       user_messages: "/user_message/{user_id}/{chat_id}",
       create_message: "/user_message",
       create_user_chat: "/user_chat",
+      escalation: "/escalation",
+      escalations: "/escalations",
+      escalation_details: "/escalation/{user_id}/{session_id}",
+      user_escalations: "/escalation/{user_id}",
     },
 
     pageEndpoints: {

@@ -23,6 +23,20 @@ export interface UserChat {
   updated_at: string;
 }
 
+export interface EscalationRequest {
+  user_id: number;
+  session_id: string;
+  status?: "pending" | "fixed" | "closed";
+  priority: "high" | "normal" | "low";
+}
+
+export interface EscalationResponse {
+  user_id: number;
+  session_id: string;
+  status: "pending" | "fixed" | "closed";
+  priority: "high" | "normal" | "low";
+}
+
 /**
  * Service for handling chat-related API interactions
  */
@@ -84,6 +98,43 @@ export class ChatService {
       chat_id: chatId,
       message: message,
       sender: sender
+    });
+  }
+
+  /**
+   * Creates an escalation request
+   * POST /api/v1/escalation
+   */
+  async createEscalation(data: EscalationRequest): Promise<EscalationResponse> {
+    return this.apiClient.post<EscalationResponse>("home", "escalation", data);
+  }
+
+  /**
+   * Fetches the list of all escalations
+   * GET /api/v1/escalations
+   */
+  async getEscalations(): Promise<EscalationResponse[]> {
+    return this.apiClient.get<EscalationResponse[]>("home", "escalations");
+  }
+
+  /**
+   * Fetches details for a specific escalation
+   * GET /api/v1/escalation/{user_id}/{session_id}
+   */
+  async getEscalationDetails(userId: number, sessionId: string): Promise<EscalationResponse> {
+    return this.apiClient.get<EscalationResponse>("home", "escalation_details", {
+      user_id: userId,
+      session_id: sessionId
+    });
+  }
+
+  /**
+   * Fetches all escalations for a specific user
+   * GET /api/v1/escalation/{user_id}
+   */
+  async getUserEscalations(userId: number): Promise<EscalationResponse[]> {
+    return this.apiClient.get<EscalationResponse[]>("home", "user_escalations", {
+      user_id: userId
     });
   }
 }

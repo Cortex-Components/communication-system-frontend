@@ -27,21 +27,23 @@ const ChatWidgetContent = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<string>("");
   const [selectedChatId, setSelectedChatId] = useState<string | undefined>();
   const [followUpMode, setFollowUpMode] = useState<"options" | "history">("options");
+  const [isFaqOnly, setIsFaqOnly] = useState<boolean>(false);
 
   const { layout, animations, user, style } = config;
+  const { apiClient, currentPage } = useChat();
 
   const handleChatSelect = (chatId: string) => {
 
     setSelectedChatId(chatId);
     setSelectedOption("");
     setSelectedAnswer("");
+    setIsFaqOnly(false);
     setView("chat");
   };
 
   const handleOptionSelect = async (option: string | Faq) => {
     const questionText = typeof option === "string" ? option : option.question;
     const lowerText = questionText.toLowerCase();
-    const isRequestChange = lowerText.includes("request a change");
     const isStatusCheck = lowerText.includes("change request status");
 
     if (isStatusCheck) {
@@ -49,22 +51,35 @@ const ChatWidgetContent = () => {
       return;
     }
 
+    if (typeof option !== "string") {
+      // FAQ logic: Fetch specific FAQ details and don't create a chat session (disable AI endpoint)
+      try {
+        const faqDetails = await apiClient.get<Faq>(currentPage, "faq_details", { faq_id: option.id });
+        setSelectedOption(faqDetails.question);
+        setSelectedAnswer(faqDetails.answer);
+      } catch (error) {
+        console.error("Failed to fetch FAQ details:", error);
+        setSelectedOption(option.question);
+        setSelectedAnswer(option.answer);
+      }
+      setSelectedChatId(undefined);
+      setIsFaqOnly(true);
+      setView("chat");
+      return;
+    }
+
+    // Non-FAQ option: create chat session (AI endpoint)
+    setIsFaqOnly(false);
     try {
       const newChat = await chatService.createChat(user.id, questionText);
       setSelectedChatId(newChat.chat_id);
     } catch (error) {
-      console.error("Failed to create chat for FAQ:", error);
+      console.error("Failed to create chat for option:", error);
     }
 
-    if (typeof option === "string") {
-      setSelectedOption(option);
-      setSelectedAnswer("");
-      setView("chat");
-    } else {
-      setSelectedOption(option.question);
-      setSelectedAnswer(option.answer);
-      setView("chat");
-    }
+    setSelectedOption(option);
+    setSelectedAnswer("");
+    setView("chat");
   };
 
   const handleRequestChange = () => {
@@ -78,6 +93,7 @@ const ChatWidgetContent = () => {
   const handleChatWithUs = async () => {
     setSelectedOption("");
     setSelectedAnswer("");
+    setIsFaqOnly(false);
     try {
       const newChat = await chatService.createChat(user.id, config.content.welcome.chatBtn);
       setSelectedChatId(newChat.chat_id);
@@ -154,6 +170,7 @@ const ChatWidgetContent = () => {
               initialMessage={selectedOption}
               initialAnswer={selectedAnswer}
               chatId={selectedChatId}
+              isStatic={isFaqOnly}
             />
           )}
           {view === "user-request-change" && (

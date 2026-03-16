@@ -18,9 +18,10 @@ interface ChatConversationProps {
   initialMessage?: string;
   initialAnswer?: string;
   chatId?: string;
+  isStatic?: boolean;
 }
 
-export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessage, initialAnswer, chatId }: ChatConversationProps) => {
+export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessage, initialAnswer, chatId, isStatic }: ChatConversationProps) => {
   const { config, chatService } = useChat();
   const { user, assistant, style, colors } = config;
   const [isLoading, setIsLoading] = useState(false);
@@ -117,11 +118,15 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
       initChat();
 
       // Poll every 3 seconds to get the chatbot's response
-      intervalId = setInterval(fetchMessages, 3000);
+      if (!isStatic) {
+        intervalId = setInterval(fetchMessages, 3000);
+      }
     }
     
-    return () => clearInterval(intervalId);
-  }, [chatId, user.id, assistant.name, user.name, initialMessage, initialAnswer, chatService]);
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [chatId, user.id, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -244,24 +249,26 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
       </div>
 
       {/* Input area */}
-      <div className="bg-cortex-cream px-5 py-6">
-        <div className="flex items-center gap-3">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter Your Message..."
-            className="flex-1 bg-transparent text-[16px] text-cortex-black/70 placeholder:text-cortex-black/40 outline-none"
-          />
-          <button
-            onClick={sendMessage}
-            className="transition-all hover:brightness-75 active:scale-95 disabled:opacity-60"
-            disabled={!input.trim()}
-          >
-            <img src={VectorIcon} alt="Send" className="w-6 h-6" />
-          </button>
+      {!isStatic && (
+        <div className="bg-cortex-cream px-5 py-6">
+          <div className="flex items-center gap-3">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter Your Message..."
+              className="flex-1 bg-transparent text-[16px] text-cortex-black/70 placeholder:text-cortex-black/40 outline-none"
+            />
+            <button
+              onClick={sendMessage}
+              className="transition-all hover:brightness-75 active:scale-95 disabled:opacity-60"
+              disabled={!input.trim()}
+            >
+              <img src={VectorIcon} alt="Send" className="w-6 h-6" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
