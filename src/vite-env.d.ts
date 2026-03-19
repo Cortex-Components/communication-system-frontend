@@ -9,6 +9,15 @@ interface ImportMetaEnv {
   readonly VITE_ASSISTANT_NAME: string;
   readonly VITE_DEFAULT_USER_ID: string;
   readonly VITE_DEFAULT_USER_NAME: string;
+  readonly VITE_WELCOME_TITLE: string;
+  readonly VITE_WELCOME_SUBTITLE: string;
+  readonly VITE_WELCOME_PROMPT: string;
+  readonly VITE_WELCOME_CHAT_BTN: string;
+  readonly VITE_WELCOME_FOLLOW_BTN: string;
+  readonly VITE_ROLE_DEV: string;
+  readonly VITE_ROLE_USER: string;
+  readonly VITE_FOLLOW_UP_OPTIONS: string;
+  readonly VITE_MODIFICATION_TAGS: string;
 }
 
 interface ImportMeta {

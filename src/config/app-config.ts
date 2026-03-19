@@ -276,11 +276,11 @@ export const APP_CONFIG: AppConfig = {
     // UI Strings & Content
     content: {
       welcome: {
-        title: "Hi There!",
-        subtitle: "How can we help?",
-        optionPrompt: "Please select an option below",
-        chatBtn: "Chat with us",
-        followBtn: "Follow previous request",
+        title: import.meta.env.VITE_WELCOME_TITLE || "Hi There!",
+        subtitle: import.meta.env.VITE_WELCOME_SUBTITLE || "How can we help?",
+        optionPrompt: import.meta.env.VITE_WELCOME_PROMPT || "Please select an option below",
+        chatBtn: import.meta.env.VITE_WELCOME_CHAT_BTN || "Chat with us",
+        followBtn: import.meta.env.VITE_WELCOME_FOLLOW_BTN || "Follow previous request",
       },
       followUp: {
         title: "Follow up on previous requests",
@@ -352,8 +352,8 @@ export const APP_CONFIG: AppConfig = {
 
     // Roles
     roles: {
-      dev: "dev",
-      user: "user",
+      dev: import.meta.env.VITE_ROLE_DEV || "dev",
+      user: import.meta.env.VITE_ROLE_USER || "user",
     },
     rolePermissions: {
       dev: { requestChangeView: "change-requests" },
@@ -371,20 +371,24 @@ export const APP_CONFIG: AppConfig = {
       name: import.meta.env.VITE_ASSISTANT_NAME || "Assistant",
     },
 
-    followUpOptions: [
-      "change request status",
-      "bug report status",
-      "support request",
-      "Update a previous change request",
-      "payment issue",
-      "complaint",
-    ],
+    followUpOptions: import.meta.env.VITE_FOLLOW_UP_OPTIONS 
+      ? import.meta.env.VITE_FOLLOW_UP_OPTIONS.split(",") 
+      : [
+          "change request status",
+          "bug report status",
+          "support request",
+          "Update a previous change request",
+          "payment issue",
+          "complaint",
+        ],
 
-    modificationTags: [
-      "Frontend", "Backend Logic", "Database", "Integration", 
-      "API Modification", "Bug Fix", "Performance Improvement", 
-      "Security Update", "Add New Feature", "Custom Business Logic"
-    ],
+    modificationTags: import.meta.env.VITE_MODIFICATION_TAGS
+      ? import.meta.env.VITE_MODIFICATION_TAGS.split(",")
+      : [
+          "Frontend", "Backend Logic", "Database", "Integration", 
+          "API Modification", "Bug Fix", "Performance Improvement", 
+          "Security Update", "Add New Feature", "Custom Business Logic"
+        ],
 
     statusFilters: {
       all: "All",
