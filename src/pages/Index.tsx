@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import ChatWidget from "@/features/chat/ChatWidget";
+import { useLanguage } from "@/contexts/useLanguage";
 
 const Index = () => {
   const [role, setRole] = useState<"dev" | "user">("dev");
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
   
   // Deriving current page from URL
   const currentPage: "home" | "support" = location.pathname === "/support" ? "support" : "home";
@@ -30,7 +32,7 @@ const Index = () => {
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              Home 
+              {t("home")} 
               {currentPage === "home" && (
                 <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-white rounded-full"></div>
               )}
@@ -43,7 +45,7 @@ const Index = () => {
                   : "text-white/50 hover:text-white/80"
               }`}
             >
-              Support 
+              {t("support")} 
               {currentPage === "support" && (
                 <div className="absolute -bottom-1 left-0 right-0 h-[2px] bg-white rounded-full"></div>
               )}
@@ -51,35 +53,45 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Role Switcher */}
-        <div className="flex bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/10 shadow-sm relative shrink-0 ml-4 md:ml-0">
+        <div className="flex items-center gap-2 md:gap-4 ml-4 md:ml-0 rtl:mr-4 rtl:md:mr-0 rtl:ml-0 shrink-0">
+          {/* Language Switcher */}
           <button
-            onClick={() => setRole("dev")}
-            className={`px-3 md:px-5 py-1.5 rounded-full font-semibold text-[12px] md:text-[13px] transition-all duration-300 whitespace-nowrap ${
-              role === "dev" 
-                ? "bg-white text-[#111] shadow-md scale-105" 
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
+            onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+             className="px-3 md:px-4 py-1.5 rounded-full font-semibold text-[12px] md:text-[13px] transition-all duration-300 whitespace-nowrap bg-white/10 hover:bg-white/20 text-white border border-white/10"
           >
-            Developer View
+            {t("language")}
           </button>
-          <button
-            onClick={() => setRole("user")}
-            className={`px-3 md:px-5 py-1.5 rounded-full font-semibold text-[12px] md:text-[13px] transition-all duration-300 whitespace-nowrap ${
-              role === "user" 
-                ? "bg-white text-[#111] shadow-md scale-105" 
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            User View
-          </button>
+
+          {/* Role Switcher */}
+          <div className="flex bg-white/10 backdrop-blur-md p-1 rounded-full border border-white/10 shadow-sm relative shrink-0">
+            <button
+              onClick={() => setRole("dev")}
+              className={`px-3 md:px-5 py-1.5 rounded-full font-semibold text-[12px] md:text-[13px] transition-all duration-300 whitespace-nowrap ${
+                role === "dev" 
+                  ? "bg-white text-[#111] shadow-md scale-105" 
+                  : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("devView")}
+            </button>
+            <button
+              onClick={() => setRole("user")}
+              className={`px-3 md:px-5 py-1.5 rounded-full font-semibold text-[12px] md:text-[13px] transition-all duration-300 whitespace-nowrap ${
+                role === "user" 
+                  ? "bg-white text-[#111] shadow-md scale-105" 
+                  : "text-white/60 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {t("userView")}
+            </button>
+          </div>
         </div>
       </nav>
 
       {/* Main Content Area (Visual representation of page change) */}
       <main className="flex flex-col items-center justify-center min-h-screen px-6 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-[#2B3D55] mb-6 tracking-tight">
-          {currentPage === "home" ? "Welcome Home" : "Support Center"}
+          {currentPage === "home" ? t("welcomeHome") : t("supportCenter")}
         </h1>
       </main>
 

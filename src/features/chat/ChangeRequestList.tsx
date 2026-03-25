@@ -97,7 +97,7 @@ export const ChangeRequestList = ({ onClose, onBack, onViewRequest, onChatWithUs
                   <div className="space-y-0 text-[15px] font-semibold" style={{ color: colors.pureBlack }}>
                     <p>
                       <span style={{ color: colors.primaryText }}>{content.details.labels.module}: </span>
-                      {request.module}
+                      {config.dataMapping.modules[request.module] || request.module}
                     </p>
                     <p>
                       <span style={{ color: colors.primaryText }}>{content.details.labels.purchased}: </span>
@@ -105,7 +105,7 @@ export const ChangeRequestList = ({ onClose, onBack, onViewRequest, onChatWithUs
                     </p>
                     <p>
                       <span style={{ color: colors.primaryText }}>{content.details.labels.status}: </span>
-                      <span style={{ color: request.statusColor }}>{request.status}</span>
+                      <span style={{ color: request.statusColor }}>{config.dataMapping.status[request.status] || request.status}</span>
                     </p>
                   </div>
                 </div>

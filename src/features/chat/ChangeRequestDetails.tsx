@@ -67,7 +67,7 @@ export const ChangeRequestDetails = ({ requestId, onClose, onCancel, onSubmit }:
             </p>
             <p className="text-[17px] font-semibold" style={{ color: colors.pureBlack }}>
               <span style={{ color: colors.primaryText }}>{content.details.labels.module}: </span>
-              {request.module}
+              {config.dataMapping.modules[request.module] || request.module}
             </p>
             <p className="text-[17px] font-semibold" style={{ color: colors.pureBlack }}>
               <span style={{ color: colors.primaryText }}>{content.details.labels.purchased}: </span>
@@ -75,7 +75,7 @@ export const ChangeRequestDetails = ({ requestId, onClose, onCancel, onSubmit }:
             </p>
             <p className="text-[17px] font-semibold" style={{ color: colors.pureBlack }}>
               <span style={{ color: colors.primaryText }}>{content.details.labels.status}: </span>
-              <span style={{ color: request.statusColor }}>{request.status}</span>
+              <span style={{ color: request.statusColor }}>{config.dataMapping.status[request.status] || request.status}</span>
             </p>
           </div>
 

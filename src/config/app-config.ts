@@ -176,6 +176,10 @@ export interface ChatConfig {
     all: string;
     noResults: string;
   };
+  dataMapping: {
+    status: Record<string, string>;
+    modules: Record<string, string>;
+  };
   animations: {
     entryTransition: string;
   };
@@ -441,6 +445,10 @@ export const APP_CONFIG: AppConfig = {
       { id: "4", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
     ],
 
+    dataMapping: {
+      status: {},
+      modules: {}
+    },
     // Animation settings
     animations: {
       entryTransition: "animate-in slide-in-from-bottom-4 fade-in duration-300",

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useChat } from "@/features/chat/context/ChatContext";
+import { useLanguage } from "@/contexts/useLanguage";
 
 /**
  * A custom hook that provides a page-aware API client.
@@ -7,6 +8,7 @@ import { useChat } from "@/features/chat/context/ChatContext";
  */
 export const useApi = () => {
   const { config, currentPage: contextPage, apiClient } = useChat();
+  const { language } = useLanguage();
   
   // Use window.location for broad compatibility
   const pathname = typeof window !== 'undefined' ? window.location.pathname : "/";
@@ -18,14 +20,14 @@ export const useApi = () => {
     userId,
     route: pathname,
     get: <T>(endpoint: string, params: Record<string, string | number> = {}) => 
-      apiClient.get<T>(currentPage, endpoint, { user_id: userId, ...params }),
+      apiClient.get<T>(currentPage, endpoint, { user_id: userId, ...params }, { lang: language }),
     post: <T>(endpoint: string, data: unknown, params: Record<string, string | number> = {}) => {
       const payload = typeof data === 'object' && data !== null 
         ? { ...data, route: pathname } 
         : data;
       return apiClient.post<T>(currentPage, endpoint, payload, { user_id: userId, ...params });
     },
-  }), [currentPage, pathname, userId, apiClient]);
+  }), [currentPage, pathname, userId, apiClient, language]);
 };
 
 export default useApi;

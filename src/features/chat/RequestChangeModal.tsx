@@ -53,11 +53,11 @@ export const RequestChangeModal = ({ onClose, onCancel, onSubmit, onChatWithUs }
             >
               <div className="space-y-0 text-[15px] font-semibold" style={{ color: colors.pureBlack }}>
                 <p>
-                  <span style={{ color: colors.primaryText }}>Module: </span>
+                  <span style={{ color: colors.primaryText }}>{content.details.labels.module}: </span>
                   {module.name}
                 </p>
                 <p>
-                  <span style={{ color: colors.primaryText }}>Purchase Date: </span>
+                  <span style={{ color: colors.primaryText }}>{content.details.labels.purchased}: </span>
                   {module.purchaseDate}
                 </p>
               </div>

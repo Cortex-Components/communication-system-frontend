@@ -5,6 +5,7 @@ import { APP_CONFIG, ApiConfig } from "@/config/app-config";
  */
 export class ApiClient {
   private config: ApiConfig;
+  public language: string = 'en';
 
   constructor(config: ApiConfig = APP_CONFIG.api) {
     this.config = config;
@@ -29,9 +30,22 @@ export class ApiClient {
     return resolvedEndpoint;
   }
 
-  async get<T>(page: string, endpoint: string, params: Record<string, string | number> = {}): Promise<T> {
+  async get<T>(page: string, endpoint: string, params: Record<string, string | number> = {}, queryParams: Record<string, string | number> = {}): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
-    const response = await fetch(`${this.baseUrl}${fullPath}`);
+    
+    // Merge global language into query params
+    const mergedQueryParams = { lang: this.language, ...queryParams };
+    
+    const query = new URLSearchParams(
+      Object.entries(mergedQueryParams).map(([k, v]) => [k, String(v)])
+    ).toString();
+    
+    const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+    const response = await fetch(url, {
+      headers: {
+        'Accept-Language': this.language,
+      }
+    });
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);
     }
@@ -45,6 +59,7 @@ export class ApiClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': this.language,
       },
       body: JSON.stringify(data),
     });

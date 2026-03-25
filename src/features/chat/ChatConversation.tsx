@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, History, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import VectorIcon from "../../assets/Vector.svg";
 import { useChat } from "./context/ChatContext";
 
@@ -37,7 +37,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
       });
       initial.push({
         id: "2",
-        text: initialAnswer || (initialMessage.match(/[\u0600-\u06FF]/) ? assistant.arabicResponse : assistant.defaultResponse),
+        text: initialAnswer || "",
         sender: "other",
         name: assistant.name,
       });
@@ -180,7 +180,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
           </h3>
           {chatTitle && (
             <p className="text-[12px] text-white/80 truncate -mt-0.5 font-medium opacity-90">
-              Support Conversation
+              {(config.content.followUp as {supportConversation?: string}).supportConversation || "Support Conversation"}
             </p>
           )}
         </div>
@@ -199,7 +199,9 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {isLoading && (
           <div className="flex justify-center py-4">
-            <span className="text-sm text-muted-foreground animate-pulse">Loading messages...</span>
+            <span className="text-sm text-muted-foreground animate-pulse">
+              {(config.content.welcome as {loadingMessages?: string}).loadingMessages || "Loading messages..."}
+            </span>
           </div>
         )}
         {messages.map((msg) => (
@@ -261,7 +263,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Enter Your Message..."
+              placeholder={(config.content.details.placeholders as {messagePlaceholder?: string}).messagePlaceholder || "Enter Your Message..."}
               className="flex-1 bg-transparent text-[16px] text-cortex-black/70 placeholder:text-cortex-black/40 outline-none"
             />
             <button
@@ -269,7 +271,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
               className="transition-all hover:brightness-75 active:scale-95 disabled:opacity-60"
               disabled={!input.trim()}
             >
-              <img src={VectorIcon} alt="Send" className="w-6 h-6" />
+              <img src={VectorIcon} alt="Send" className="w-6 h-6 rtl:scale-x-[-1]" />
             </button>
           </div>
         </div>

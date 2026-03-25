@@ -78,7 +78,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
             onClick={onRequestChange}
             className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[11px] sm:text-[12px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
           >
-            Request a change
+            {(content.welcome as {requestBtn?: string}).requestBtn || "Request a change"}
           </button>
         </div>
         
@@ -88,7 +88,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-3 text-muted-foreground">
               <Loader2 className="w-8 h-8 animate-spin text-cortex-amber" />
-              <p className="text-sm font-medium">Getting latest updates...</p>
+              <p className="text-sm font-medium">{(content.welcome as {gettingUpdates?: string}).gettingUpdates || "Getting latest updates..."}</p>
             </div>
           ) : faqs.length > 0 ? (
             faqs.map((faq) => (
@@ -101,7 +101,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
               </button>
             ))
           ) : (
-            <p className="text-center text-muted-foreground py-6">No options available at the moment.</p>
+            <p className="text-center text-muted-foreground py-6">{(content.welcome as {noOptions?: string}).noOptions || "No options available at the moment."}</p>
           )}
         </div>
 
