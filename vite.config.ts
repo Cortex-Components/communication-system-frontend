@@ -22,6 +22,21 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+    build: {
+      lib: {
+        entry: path.resolve(__dirname, "src/main.tsx"),
+        name: "CortexChatWidget",
+        fileName: (format) => `cortex-chat-widget.${format}.js`,
+        formats: ["es", "umd"],
+      },
+      rollupOptions: {
+        // We usually don't externalize React/ReactDOM for a standalone Widget to avoid version conflicts on host pages.
+        // But if you want a smaller file and the parent page has React, we can externalize them.
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
