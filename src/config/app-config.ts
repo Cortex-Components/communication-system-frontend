@@ -204,7 +204,7 @@ const API_CONFIG: ApiConfig = {
         : (import.meta.env.VITE_API_BASE_URL || "http://142.93.167.9:8010/api/v1"),
     endpoints: {
       faqs: "/page/{page}/faqs",
-      faq_details: "/faqs/{faq_id}",
+      faq_details: "/page/{page}/faqs/{faq_id}",
       user_chats: "/user_chats/{user_id}",
       user_chat: "/user_chat/{user_id}/{chat_id}",
       user_messages: "/user_message/{user_id}/{chat_id}",
@@ -216,10 +216,7 @@ const API_CONFIG: ApiConfig = {
       user_escalations: "/escalation/{user_id}",
       delete_chat: "/user_chats/delete",
     },
-    pageEndpoints: {
-      home: "home",
-      support: "support",
-    }
+    pageEndpoints: (import.meta.env.VITE_AVAILABLE_PAGES ? import.meta.env.VITE_AVAILABLE_PAGES.split(",") : ["home", "support"]).reduce((acc: Record<string, string>, page: string) => ({ ...acc, [page.trim()]: page.trim() }), {})
 };
 
 export const APP_CONFIG: AppConfig = {
@@ -256,15 +253,17 @@ export const APP_CONFIG: AppConfig = {
         borderRadius: "24px",
       },
       gradients: {
-        header: "linear-gradient(360deg, #DDD8BB -68.13%, #858B89 15.94%, #37475C 100%)",
-        button: "linear-gradient(270deg, #DDD8BB 0%, #858B89 50%, #37475C 100%)",
-        icon: "linear-gradient(90deg, #DBD6BA 0%, #949791 15.87%, #3A495E 68.27%)",
+        header: `linear-gradient(360deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} -68.13%, #858B89 15.94%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
+        button: `linear-gradient(270deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} 0%, #858B89 50%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
+        icon: `linear-gradient(90deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DBD6BA"} 0%, #949791 15.87%, ${import.meta.env.VITE_COLOR_PRIMARY || "#3A495E"} 68.27%)`,
       }
     },
 
     // Color Palette (Commonly used hex codes)
     colors: {
-      primaryText: "#2B3D55",
+      primary: import.meta.env.VITE_COLOR_PRIMARY || "#2B3D55",
+      secondary: import.meta.env.VITE_COLOR_SECONDARY || "#F2DCB3",
+      primaryText: import.meta.env.VITE_COLOR_PRIMARY || "#2B3D55",
       secondaryText: "#737373",
       mutedText: "#7E8CA0",
       black: "#0C161F",
@@ -356,10 +355,7 @@ export const APP_CONFIG: AppConfig = {
     },
 
     // Roles
-    roles: {
-      dev: import.meta.env.VITE_ROLE_DEV || "dev",
-      user: import.meta.env.VITE_ROLE_USER || "user",
-    },
+    roles: (import.meta.env.VITE_AVAILABLE_ROLES ? import.meta.env.VITE_AVAILABLE_ROLES.split(",") : ["dev", "user"]).reduce((acc: Record<string, string>, role: string) => ({ ...acc, [role.trim()]: role.trim() }), {}),
     rolePermissions: {
       dev: { requestChangeView: "change-requests" },
       user: { requestChangeView: "user-request-change" },

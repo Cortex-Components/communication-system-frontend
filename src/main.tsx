@@ -89,8 +89,8 @@ class CortexChatWidget extends HTMLElement {
     private render() {
         if (!this.reactRoot) return;
 
-        const role = this.getAttribute("role") || "dev";
-        const currentPage = this.getAttribute("current-page") || "home";
+        const role = this.getAttribute("role") || import.meta.env.VITE_DEFAULT_ROLE || "dev";
+        const currentPage = this.getAttribute("current-page") || import.meta.env.VITE_DEFAULT_PAGE || "home";
         let config = {};
 
         // Parse config attribute if it's valid JSON
@@ -120,6 +120,7 @@ class CortexChatWidget extends HTMLElement {
 }
 
 // Define the custom element
-if (!customElements.get("cortex-chat-widget")) {
-    customElements.define("cortex-chat-widget", CortexChatWidget);
+const tagName = import.meta.env.VITE_WIDGET_TAG_NAME || "cortex-chat-widget";
+if (!customElements.get(tagName)) {
+    customElements.define(tagName, CortexChatWidget);
 }

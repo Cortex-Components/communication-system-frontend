@@ -78,6 +78,14 @@ export const ChatProvider: React.FC<{
     const finalConfig = {
       ...CHAT_CONFIG,
       ...config,
+      // Deep merge style so passing just { gradients } doesn't wipe out headerHeight etc.
+      style: config?.style
+        ? { ...CHAT_CONFIG.style, ...config.style, gradients: { ...CHAT_CONFIG.style.gradients, ...config.style?.gradients } }
+        : CHAT_CONFIG.style,
+      // Deep merge colors so partial color overrides don't wipe out the full palette
+      colors: config?.colors
+        ? { ...CHAT_CONFIG.colors, ...config.colors }
+        : CHAT_CONFIG.colors,
       followUpOptions: localizedContent.followUpOptions || CHAT_CONFIG.followUpOptions,
       modificationTags: localizedContent.modificationTags || CHAT_CONFIG.modificationTags,
       statusFilters: { ...CHAT_CONFIG.statusFilters, ...(localizedContent.statusFilters || {}) },

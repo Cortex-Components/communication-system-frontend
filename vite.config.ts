@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => {
       hmr: {
         overlay: false,
       },
+      watch: {
+        // Ignore .env changes so the dashboard server can write to .env without triggering a full page reload.
+        ignored: ["**/.env", "**/.env.*"],
+      },
       proxy: {
         "/api": {
           target: env.VITE_PROXY_TARGET || "http://142.93.167.9:8010",

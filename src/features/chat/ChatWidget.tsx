@@ -52,7 +52,17 @@ const ChatWidgetContent = () => {
     }
 
     if (typeof option !== "string") {
-      // FAQ logic: Fetch specific FAQ details and don't create a chat session (disable AI endpoint)
+      // Use existing data from the FAQ object if available to avoid redundant or failing fetch calls.
+      if (option.answer) {
+        setSelectedOption(option.question);
+        setSelectedAnswer(option.answer);
+        setSelectedChatId(undefined);
+        setIsFaqOnly(true);
+        setView("chat");
+        return;
+      }
+
+      // FAQ logic: Fetch specific FAQ details if answer is not already present
       try {
         const faqDetails = await apiClient.get<Faq>(currentPage, "faq_details", { faq_id: option.id });
         setSelectedOption(faqDetails.question);
