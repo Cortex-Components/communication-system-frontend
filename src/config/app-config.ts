@@ -196,11 +196,12 @@ export interface AppConfig {
   chat: ChatConfig;
 }
 
-export const APP_CONFIG: AppConfig = {
-
-  api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || "/api/v1",
-
+const API_CONFIG: ApiConfig = {
+    // Force a relative path for local development to ensure the Vite proxy is always used.
+    // In production, fallback to an absolute URL if no environment override is provided.
+    baseUrl: import.meta.env.DEV 
+        ? "/api/v1" 
+        : (import.meta.env.VITE_API_BASE_URL || "http://142.93.167.9:8010/api/v1"),
     endpoints: {
       faqs: "/page/{page}/faqs",
       faq_details: "/faqs/{faq_id}",
@@ -215,14 +216,14 @@ export const APP_CONFIG: AppConfig = {
       user_escalations: "/escalation/{user_id}",
       delete_chat: "/user_chats/delete",
     },
-
     pageEndpoints: {
       home: "home",
       support: "support",
     }
-  },
+};
 
-
+export const APP_CONFIG: AppConfig = {
+  api: API_CONFIG,
   general: {
     appName: import.meta.env.VITE_APP_NAME || "Communication System",
     supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || "support@gmail.com",
@@ -453,22 +454,7 @@ export const APP_CONFIG: AppConfig = {
     animations: {
       entryTransition: "animate-in slide-in-from-bottom-4 fade-in duration-300",
     },
-    api: {
-      baseUrl: import.meta.env.VITE_API_BASE_URL || "/api/v1",
-      endpoints: {
-        faqs: "/page/{page}/faqs",
-        user_chats: "/user_chats/{user_id}",
-        user_chat: "/user_chat/{user_id}/{chat_id}",
-        user_messages: "/user_message/{user_id}/{chat_id}",
-        create_message: "/user_message",
-        create_user_chat: "/user_chat",
-        delete_chat: "/user_chats/delete",
-      },
-      pageEndpoints: {
-        home: "home",
-        support: "support",
-      }
-    }
+    api: API_CONFIG
   }
 };
 

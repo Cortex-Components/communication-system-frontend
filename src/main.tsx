@@ -1,34 +1,121 @@
-import { createRoot } from "react-dom/client";
-import App from "./app/App";
-import stylesheet from "../styles/index.css?inline";
+import { createRoot, Root } from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import ChatWidget from "./features/chat/ChatWidget";
+import stylesheet from "../styles/index.css?inline";
+
+const queryClient = new QueryClient();
+
+// Process stylesheet for Shadow DOM:
+// 1. Replace ':root' with ':host' to scope CSS variables to the shadow host.
+// 2. Replace 'body' with ':host' to apply global styles to the shadow host.
+const processedStylesheet = stylesheet
+    .replace(/:root/g, ":host")
+    .replace(/body/g, ":host");
 
 class CortexChatWidget extends HTMLElement {
+    private reactRoot: Root | null = null;
+    private mountPoint: HTMLDivElement | null = null;
+
+    static get observedAttributes() {
+        return ["role", "current-page", "config"];
+    }
+
     constructor() {
         super();
         this.attachShadow({ mode: "open" });
     }
 
+    attributeChangedCallback() {
+        // Re-render when attributes change
+        if (this.reactRoot) {
+            this.render();
+        }
+    }
+
     connectedCallback() {
         if (!this.shadowRoot) return;
 
-        // Shadow root wrapper for React to mount
-        const mountPoint = document.createElement("div");
-        mountPoint.id = "root";
-        mountPoint.style.width = "100%";
-        mountPoint.style.height = "100%";
+        // Use Adopted StyleSheets if supported (modern browsers)
+        if ("adoptedStyleSheets" in this.shadowRoot && typeof CSSStyleSheet !== "undefined") {
+            const sheet = new CSSStyleSheet();
+            sheet.replaceSync(processedStylesheet);
+            
+            const hostSheet = new CSSStyleSheet();
+            hostSheet.replaceSync(`
+                :host {
+                    display: block;
+                    position: fixed;
+                    bottom: 0;
+                    right: 0;
+                    z-index: 9999;
+                    isolation: isolate;
+                }
+            `);
+            
+            this.shadowRoot.adoptedStyleSheets = [sheet, hostSheet];
+        } else {
+            // Fallback for browsers that don't support adoptedStyleSheets
+            const styleTag = document.createElement("style");
+            styleTag.textContent = processedStylesheet + `
+                :host {
+                    display: block;
+                    position: fixed;
+                    bottom: 0;
+                    right: 0;
+                    z-index: 9999;
+                    isolation: isolate;
+                }
+            `;
+            this.shadowRoot.appendChild(styleTag);
+        }
 
-        // Inject Stylesheet into Shadow DOM
-        const styleTag = document.createElement("style");
-        styleTag.textContent = stylesheet;
-        this.shadowRoot.appendChild(styleTag);
-        this.shadowRoot.appendChild(mountPoint);
+        // Create mount point for React
+        this.mountPoint = document.createElement("div");
+        this.mountPoint.id = "cortex-chat-root";
+        
+        // Apply base classes and handle dark mode from the host page
+        this.mountPoint.className = "bg-background text-foreground font-sans antialiased";
+        if (document.documentElement.classList.contains("dark") || document.body.classList.contains("dark")) {
+            this.mountPoint.classList.add("dark");
+        }
 
-        createRoot(mountPoint).render(
-            <LanguageProvider>
-                <App />
-            </LanguageProvider>
+        this.shadowRoot.appendChild(this.mountPoint);
+
+        this.reactRoot = createRoot(this.mountPoint);
+        this.render();
+    }
+
+    private render() {
+        if (!this.reactRoot) return;
+
+        const role = this.getAttribute("role") || "dev";
+        const currentPage = this.getAttribute("current-page") || "home";
+        let config = {};
+
+        // Parse config attribute if it's valid JSON
+        const configAttr = this.getAttribute("config");
+        if (configAttr) {
+            try {
+                config = JSON.parse(configAttr);
+            } catch (e) {
+                console.error("Failed to parse cortex-chat-widget configuration:", e);
+            }
+        }
+
+        this.reactRoot.render(
+            <QueryClientProvider client={queryClient}>
+                <LanguageProvider>
+                    <ChatWidget role={role} currentPage={currentPage} config={config} />
+                </LanguageProvider>
+            </QueryClientProvider>
         );
+    }
+
+    disconnectedCallback() {
+        if (this.reactRoot) {
+            this.reactRoot.unmount();
+        }
     }
 }
 
