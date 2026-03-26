@@ -6,6 +6,9 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   return {
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(mode),
+    },
     server: {
       host: "::",
       port: parseInt(env.VITE_PORT || "8081"),
