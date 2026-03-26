@@ -90,7 +90,15 @@ export const ChatProvider: React.FC<{
       modificationTags: localizedContent.modificationTags || CHAT_CONFIG.modificationTags,
       statusFilters: { ...CHAT_CONFIG.statusFilters, ...(localizedContent.statusFilters || {}) },
       dataMapping: localizedContent.dataMapping || { status: {}, modules: {} },
-      content: config?.content ? { ...mergedContent, ...config.content } : mergedContent,
+      content: config?.content
+        ? {
+            ...mergedContent,
+            ...config.content,
+            welcome: { ...mergedContent.welcome, ...config.content?.welcome },
+            followUp: { ...mergedContent.followUp, ...config.content?.followUp },
+            changeRequests: { ...mergedContent.changeRequests, ...config.content?.changeRequests },
+          }
+        : mergedContent,
     } as ChatConfig;
 
     return finalConfig;

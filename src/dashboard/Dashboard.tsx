@@ -314,7 +314,23 @@ const Dashboard = () => {
                             button: `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`,
                             icon: `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`,
                         }
-                    }
+                    },
+                    content: {
+                        welcome: {
+                            title: config['VITE_WELCOME_TITLE'] || 'Hi There!',
+                            subtitle: config['VITE_WELCOME_SUBTITLE'] || 'How can we help?',
+                            optionPrompt: config['VITE_WELCOME_PROMPT'] || 'Please select an option below',
+                            chatBtn: config['VITE_WELCOME_CHAT_BTN'] || 'Chat with us',
+                            followBtn: config['VITE_WELCOME_FOLLOW_BTN'] || 'Follow previous request',
+                        }
+                    },
+                    assistant: {
+                        name: config['VITE_ASSISTANT_NAME'] || 'Assistant',
+                    },
+                    user: {
+                        id: parseInt(config['VITE_DEFAULT_USER_ID'] || '0'),
+                        name: config['VITE_DEFAULT_USER_NAME'] || 'Guest',
+                    },
                 });
                 const tag = config['VITE_WIDGET_TAG_NAME'] || 'cortex-chat-widget';
                 return React.createElement(tag, { config: liveConfig });
