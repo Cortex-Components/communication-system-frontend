@@ -307,13 +307,10 @@ const Dashboard = () => {
                 const primary = config['VITE_COLOR_PRIMARY'] || '#2B3D55';
                 const secondary = config['VITE_COLOR_SECONDARY'] || '#F2DCB3';
                 const liveConfig = JSON.stringify({
-                    colors: { primary, secondary, primaryText: primary },
-                    style: {
-                        gradients: {
-                            header: `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`,
-                            button: `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`,
-                            icon: `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`,
-                        }
+                    colors: { 
+                        primary, 
+                        secondary,
+                        primaryText: primary 
                     },
                     content: {
                         welcome: {

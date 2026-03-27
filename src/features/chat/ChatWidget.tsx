@@ -223,7 +223,7 @@ const ChatWidgetContent = () => {
         <button
           onClick={() => setView("welcome")}
           className={`${layout.bubbleWidth} ${layout.bubbleHeight} pt-1 rounded-xl shadow-lg flex items-center justify-center transition-transform ${layout.zIndex.bubble}`}
-          style={{ background: style.gradients.header }}
+          style={{ background: "var(--cortex-header-gradient)" }}
         >
           <img src={ChatIcon} alt="Chat" className="w-9 h-9" />
         </button>

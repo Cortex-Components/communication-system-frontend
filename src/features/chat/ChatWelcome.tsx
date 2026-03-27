@@ -44,7 +44,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
       {/* Gradient Header */}
       <div 
         className="relative px-6 pt-6 sm:pt-8 pb-8 sm:pb-10 overflow-hidden shrink-0"
-        style={{ height: `min(${style.headerHeight}, 25vh)`, minHeight: "130px", background: style.gradients.header }}
+        style={{ height: `min(${style.headerHeight}, 25vh)`, minHeight: "130px", background: "var(--cortex-header-gradient)" }}
       >
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <button
@@ -108,15 +108,13 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
         <div className="mt-auto pt-3 sm:pt-4 shrink-0 flex flex-col gap-2.5 sm:gap-3">
           <button
             onClick={onFollowRequest}
-            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98]"
-            style={{ background: style.gradients.button }}
+            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"
           >
             {content.welcome.followBtn}
           </button>
           <button
             onClick={onChatWithUs}
-            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98]"
-            style={{ background: style.gradients.button }}
+            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"
           >
             {content.welcome.chatBtn}
           </button>

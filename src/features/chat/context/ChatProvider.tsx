@@ -46,32 +46,32 @@ export const ChatProvider: React.FC<{
     const baseContent = CHAT_CONFIG.content;
     const localizedContent = ((translations[language] as Record<string, unknown>)?.chatWidget ?? {}) as ChatWidgetLocalization;
     
-    // Deep merge of localized content over base content
+    // Deep merge of configuration (base) over localized content (defaults)
     const mergedContent = {
-      ...baseContent,
       ...localizedContent,
-      welcome: { ...baseContent.welcome, ...localizedContent.welcome },
-      followUp: { ...baseContent.followUp, ...localizedContent.followUp },
-      changeRequests: { ...baseContent.changeRequests, ...localizedContent.changeRequests },
+      ...baseContent,
+      welcome: { ...localizedContent.welcome, ...baseContent.welcome },
+      followUp: { ...localizedContent.followUp, ...baseContent.followUp },
+      changeRequests: { ...localizedContent.changeRequests, ...baseContent.changeRequests },
       details: {
-        ...baseContent.details,
         ...localizedContent.details,
-        labels: { ...baseContent.details.labels, ...localizedContent.details?.labels },
-        sections: { ...baseContent.details.sections, ...localizedContent.details?.sections },
-        placeholders: { ...baseContent.details.placeholders, ...localizedContent.details?.placeholders },
-        upload: { ...baseContent.details.upload, ...localizedContent.details?.upload },
-        actions: { ...baseContent.details.actions, ...localizedContent.details?.actions },
+        ...baseContent.details,
+        labels: { ...localizedContent.details?.labels, ...baseContent.details.labels },
+        sections: { ...localizedContent.details?.sections, ...baseContent.details.sections },
+        placeholders: { ...localizedContent.details?.placeholders, ...baseContent.details.placeholders },
+        upload: { ...localizedContent.details?.upload, ...baseContent.details.upload },
+        actions: { ...localizedContent.details?.actions, ...baseContent.details.actions },
       },
       userRequestChange: {
-        ...baseContent.userRequestChange,
         ...localizedContent.userRequestChange,
-        actions: { ...baseContent.userRequestChange?.actions, ...localizedContent.userRequestChange?.actions }
+        ...baseContent.userRequestChange,
+        actions: { ...localizedContent.userRequestChange?.actions, ...baseContent.userRequestChange?.actions }
       },
       history: {
-        ...baseContent.history,
         ...localizedContent.history,
-        actions: { ...baseContent.history?.actions, ...localizedContent.history?.actions },
-        messages: { ...baseContent.history?.messages, ...localizedContent.history?.messages }
+        ...baseContent.history,
+        actions: { ...localizedContent.history?.actions, ...baseContent.history?.actions },
+        messages: { ...localizedContent.history?.messages, ...baseContent.history?.messages }
       }
     };
 
@@ -111,6 +111,28 @@ export const ChatProvider: React.FC<{
     const chat = new ChatService(api);
     return { apiClient: api, chatService: chat };
   }, [mergedConfig.api, language]);
+
+  // Sync colors to Shadow DOM host whenever they change
+  React.useLayoutEffect(() => {
+    // Find the shadow host (the custom element itself)
+    const tagName = import.meta.env.VITE_WIDGET_TAG_NAME || 'cortex-chat-widget';
+    const host = document.querySelector(tagName);
+    if (host && host.shadowRoot) {
+      const primary = mergedConfig.colors.primary;
+      const secondary = mergedConfig.colors.secondary;
+      
+      // Update variables on the :host style
+      const style = (host as HTMLElement).style;
+      style.setProperty('--primary', primary);
+      style.setProperty('--secondary', secondary);
+      style.setProperty('--accent', secondary);
+      style.setProperty('--cortex-primary', primary);
+      style.setProperty('--cortex-secondary', secondary);
+      style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
+      style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
+      style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
+    }
+  }, [mergedConfig.colors.primary, mergedConfig.colors.secondary]);
 
   const value = useMemo(() => ({
     config: mergedConfig,

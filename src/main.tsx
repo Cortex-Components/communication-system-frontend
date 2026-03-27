@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import ChatWidget from "./features/chat/ChatWidget";
 import stylesheet from "../styles/index.css?inline";
+import APP_CONFIG from "./config/app-config";
 
 const queryClient = new QueryClient();
 
@@ -36,37 +37,45 @@ class CortexChatWidget extends HTMLElement {
     connectedCallback() {
         if (!this.shadowRoot) return;
 
+        const primary = APP_CONFIG.chat.colors.primary;
+        const secondary = APP_CONFIG.chat.colors.secondary;
+
+        const hostCss = `
+            :host {
+                display: block;
+                position: fixed;
+                bottom: 0;
+                right: 0;
+                z-index: 9999;
+                isolation: isolate;
+                
+                /* Dynamic Hex Colors from .env */
+                --primary: ${primary};
+                --secondary: ${secondary};
+                --accent: ${secondary};
+
+                /* Cortex Specific Variables */
+                --cortex-primary: ${primary};
+                --cortex-secondary: ${secondary};
+                --cortex-header-gradient: linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%);
+                --cortex-button-gradient: linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%);
+                --cortex-icon-gradient: linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%);
+            }
+        `;
+
         // Use Adopted StyleSheets if supported (modern browsers)
         if ("adoptedStyleSheets" in this.shadowRoot && typeof CSSStyleSheet !== "undefined") {
             const sheet = new CSSStyleSheet();
             sheet.replaceSync(processedStylesheet);
             
             const hostSheet = new CSSStyleSheet();
-            hostSheet.replaceSync(`
-                :host {
-                    display: block;
-                    position: fixed;
-                    bottom: 0;
-                    right: 0;
-                    z-index: 9999;
-                    isolation: isolate;
-                }
-            `);
+            hostSheet.replaceSync(hostCss);
             
             this.shadowRoot.adoptedStyleSheets = [sheet, hostSheet];
         } else {
             // Fallback for browsers that don't support adoptedStyleSheets
             const styleTag = document.createElement("style");
-            styleTag.textContent = processedStylesheet + `
-                :host {
-                    display: block;
-                    position: fixed;
-                    bottom: 0;
-                    right: 0;
-                    z-index: 9999;
-                    isolation: isolate;
-                }
-            `;
+            styleTag.textContent = processedStylesheet + hostCss;
             this.shadowRoot.appendChild(styleTag);
         }
 

@@ -17,33 +17,33 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #ffffff;
+    --foreground: #020817;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: #ffffff;
+    --card-foreground: #020817;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: #ffffff;
+    --popover-foreground: #020817;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: var(--cortex-primary);
+    --primary-foreground: #f8fafc;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: var(--cortex-secondary);
+    --secondary-foreground: #0f172a;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: var(--cortex-secondary);
+    --accent-foreground: #0f172a;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: #ef4444;
+    --destructive-foreground: #f8fafc;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #020817;
 
     --radius: 0.5rem;
 
@@ -72,13 +72,13 @@ All colors MUST be HSL.
     --cortex-gray: 0 0% 85%;
 
     /* Custom Header Gradient */
-    --cortex-header-gradient: linear-gradient(360deg, #DDD8BB -68.13%, #858B89 15.94%, #37475C 100%);
+    --cortex-header-gradient: linear-gradient(360deg, var(--cortex-secondary, #DDD8BB) -68.13%, #858B89 15.94%, var(--cortex-primary, #37475C) 100%);
     
     /* Custom Button Gradient */
-    --cortex-button-gradient: linear-gradient(270deg, #DDD8BB 0%, #858B89 50%, #37475C 100%);
+    --cortex-button-gradient: linear-gradient(270deg, var(--cortex-secondary, #DDD8BB) 0%, #858B89 50%, var(--cortex-primary, #37475C) 100%);
 
     /* Custom Icon Gradient */
-    --cortex-icon-gradient: linear-gradient(90deg, #DBD6BA 0%, #949791 15.87%, #3A495E 68.27%);
+    --cortex-icon-gradient: linear-gradient(90deg, var(--cortex-secondary, #DBD6BA) 0%, #949791 15.87%, var(--cortex-primary, #3A495E) 68.27%);
   }
 
   .dark {
