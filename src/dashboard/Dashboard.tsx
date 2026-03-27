@@ -58,6 +58,9 @@ const Dashboard = () => {
     };
 
     const handleBuild = async () => {
+        // Save the config to .env before building
+        await handleSaveConfig();
+        
         setStatus('building');
         setBuildLog('Starting build process...');
         try {
@@ -157,7 +160,7 @@ const Dashboard = () => {
                         <nav className="flex md:flex-col overflow-x-auto space-x-2 md:space-x-0 md:space-y-1 bg-white p-2 rounded-xl border border-slate-200 shadow-sm scrollbar-hide">
                             {[
                                 { id: 'general', icon: Settings, label: 'General' },
-                                { id: 'appearance', icon: Palette, label: 'Appearance' },
+                                // { id: 'appearance', icon: Palette, label: 'Appearance' },
                                 { id: 'content', icon: MessageSquare, label: 'Content & UI' },
                                 { id: 'persona', icon: Globe, label: 'Persona' },
                             ].map((tab) => (
@@ -329,7 +332,7 @@ const Dashboard = () => {
                         name: config['VITE_DEFAULT_USER_NAME'] || 'Guest',
                     },
                 });
-                const tag = config['VITE_WIDGET_TAG_NAME'] || 'cortex-chat-widget';
+                const tag = Object.prototype.hasOwnProperty.call(import.meta.env, 'VITE_WIDGET_TAG_NAME') ? (import.meta.env as any).VITE_WIDGET_TAG_NAME || 'cortex-chat-widget' : 'cortex-chat-widget';
                 return React.createElement(tag, { config: liveConfig });
             })()}
             {savedToast && (

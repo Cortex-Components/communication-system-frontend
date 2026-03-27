@@ -33,10 +33,27 @@ app.get('/api/config', (req, res) => {
 app.post('/api/config', (req, res) => {
     try {
         const newConfig = req.body;
-        let envContent = '';
+        let envContent = fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH, 'utf-8') : '';
+        
         for (const [key, value] of Object.entries(newConfig)) {
-            envContent += `${key}=${value}\n`;
+            // Safely quote value if it contains spaces and is not already quoted
+            let safeValue = value;
+            if (typeof value === 'string' && value.includes(' ') && !value.startsWith('"') && !value.startsWith("'")) {
+                safeValue = `"${value}"`;
+            }
+
+            const regex = new RegExp(`^${key}=.*$`, 'm');
+            if (regex.test(envContent)) {
+                envContent = envContent.replace(regex, `${key}=${safeValue}`);
+            } else {
+                // Ensure there is a newline before appending if not empty
+                if (envContent && !envContent.endsWith('\n')) {
+                    envContent += '\n';
+                }
+                envContent += `${key}=${safeValue}\n`;
+            }
         }
+        
         fs.writeFileSync(ENV_PATH, envContent);
         res.json({ message: 'Config updated successfully' });
     } catch (error) {
