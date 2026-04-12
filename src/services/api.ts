@@ -30,7 +30,13 @@ export class ApiClient {
     return resolvedEndpoint;
   }
 
-  async get<T>(page: string, endpoint: string, params: Record<string, string | number> = {}, queryParams: Record<string, string | number> = {}): Promise<T> {
+  async get<T>(
+    page: string, 
+    endpoint: string, 
+    params: Record<string, string | number> = {}, 
+    queryParams: Record<string, string | number> = {},
+    customHeaders: Record<string, string> = {}
+  ): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
     
     // Merge global language into query params
@@ -41,9 +47,15 @@ export class ApiClient {
     ).toString();
     
     const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+
+    const token = localStorage.getItem('token') || import.meta.env.VITE_API_TOKEN;
+    const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
+
     const response = await fetch(url, {
       headers: {
         'Accept-Language': this.language,
+        ...authHeader,
+        ...customHeaders,
       }
     });
     if (!response.ok) {
@@ -53,15 +65,96 @@ export class ApiClient {
     return text ? JSON.parse(text) : {} as T;
   }
 
-  async post<T>(page: string, endpoint: string, data: unknown, params: Record<string, string | number> = {}): Promise<T> {
+  async post<T>(
+    page: string, 
+    endpoint: string, 
+    data: unknown, 
+    params: Record<string, string | number> = {},
+    customHeaders: Record<string, string> = {}
+  ): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
+    
+    const token = localStorage.getItem('token') || import.meta.env.VITE_API_TOKEN;
+    const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const isFormData = data instanceof FormData;
+    const headers: Record<string, string> = {
+      'Accept-Language': this.language,
+      ...authHeader,
+      ...customHeaders,
+    };
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(`${this.baseUrl}${fullPath}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept-Language': this.language,
-      },
-      body: JSON.stringify(data),
+      headers,
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
+  }
+
+  async put<T>(
+    page: string, 
+    endpoint: string, 
+    data: unknown, 
+    params: Record<string, string | number> = {},
+    customHeaders: Record<string, string> = {}
+  ): Promise<T> {
+    const fullPath = this.getEndpoint(page, endpoint, params);
+    
+    const token = localStorage.getItem('token') || import.meta.env.VITE_API_TOKEN;
+    const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const isFormData = data instanceof FormData;
+    const headers: Record<string, string> = {
+      'Accept-Language': this.language,
+      ...authHeader,
+      ...customHeaders,
+    };
+
+    if (!isFormData) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(`${this.baseUrl}${fullPath}`, {
+      method: 'PUT',
+      headers,
+      body: isFormData ? (data as FormData) : JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
+  }
+
+  async delete<T>(
+    page: string, 
+    endpoint: string, 
+    params: Record<string, string | number> = {},
+    customHeaders: Record<string, string> = {}
+  ): Promise<T> {
+    const fullPath = this.getEndpoint(page, endpoint, params);
+    
+    const token = localStorage.getItem('token') || import.meta.env.VITE_API_TOKEN;
+    const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+    const headers: Record<string, string> = {
+      'Accept-Language': this.language,
+      ...authHeader,
+      ...customHeaders,
+    };
+
+    const response = await fetch(`${this.baseUrl}${fullPath}`, {
+      method: 'DELETE',
+      headers,
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);

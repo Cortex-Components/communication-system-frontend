@@ -104,12 +104,8 @@ export const translations: Translations = {
         },
       },
       followUpOptions: [
-        "change request status",
-        "bug report status",
-        "support request",
         "Update a previous change request",
-        "payment issue",
-        "complaint",
+        "Delete a previous change request",
       ],
       modificationTags: [
         "Frontend",
@@ -243,12 +239,8 @@ export const translations: Translations = {
         },
       },
       followUpOptions: [
-        "حالة طلب التغيير",
-        "حالة تقرير الأخطاء",
-        "طلب دعم",
         "تحديث طلب تغيير سابق",
-        "مشكلة في الدفع",
-        "شكوى",
+        "حذف طلب تغيير سابق",
       ],
       modificationTags: [
         "الواجهة الأمامية",

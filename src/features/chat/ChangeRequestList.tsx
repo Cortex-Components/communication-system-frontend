@@ -1,6 +1,7 @@
 import { X, ArrowLeft, Settings2, Check } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useChat } from "./context/ChatContext";
+import { UserAttachment } from "../../services/chat-service";
 
 interface ChangeRequestListProps {
   onClose: () => void;
@@ -10,18 +11,68 @@ interface ChangeRequestListProps {
 }
 
 export const ChangeRequestList = ({ onClose, onBack, onViewRequest, onChatWithUs }: ChangeRequestListProps) => {
-  const { config } = useChat();
+  const { config, chatService, role } = useChat();
   const { changeRequests, colors, content, statusFilters, style } = config;
 
   const [filterStatus, setFilterStatus] = useState<string>(statusFilters.all);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [apiRequests, setApiRequests] = useState(changeRequests);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+        const res = role === "user" 
+          ? await chatService.getUserChangeRequests()
+          : await chatService.getDeveloperChangeRequests();
+        if (res && res.results) {
+          const formatted = res.results.map((req) => {
+            const mappedStatus = 
+              req.status === "in_progress" ? "In progress" : 
+              req.status === "completed" ? "Completed" : 
+              req.status === "rejected" ? "Rejected" : "Opened";
+            
+            return {
+              id: req.id.toString(),
+              userName: `User ${req.user_id}`,
+              module: req.module_id.toString(),
+              purchasedDate: new Date(req.created_at).toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' }),
+              status: mappedStatus,
+              statusColor: req.status === "completed" ? "#00642F" : 
+                           req.status === "rejected" ? "#D9534F" : "#9C6F46",
+              requestedChanges: req.change_details,
+              attachments: req.user_attachments.map((a: UserAttachment) => ({
+                name: a.title || (a.item ? a.item.split('/').pop() : `Attachment ${a.id || ''}`),
+                size: "N/A",
+                type: a.item?.toLowerCase().endsWith(".pdf") ? "pdf" : "image"
+              }))
+            };
+          });
+          if (formatted.length > 0) {
+            setApiRequests(formatted);
+          } else {
+            // Fallback to mock data from config for testing
+            setApiRequests(config.changeRequests || []);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch change requests, using fallback:", err);
+        setApiRequests(config.changeRequests || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [chatService, role, config.changeRequests]);
 
   const filteredRequests = useMemo(() => {
-    if (filterStatus === statusFilters.all) return changeRequests;
-    return changeRequests.filter(r => r.status === filterStatus);
-  }, [changeRequests, filterStatus, statusFilters.all]);
+    if (filterStatus === statusFilters.all) return apiRequests;
+    return apiRequests.filter(r => r.status === filterStatus || config.dataMapping.status[r.status] === filterStatus);
+  }, [apiRequests, filterStatus, statusFilters.all, config.dataMapping.status]);
 
-  const statuses = useMemo(() => [statusFilters.all, ...new Set(changeRequests.map(r => r.status))], [changeRequests, statusFilters.all]);
+  const statuses = useMemo(() => [statusFilters.all, ...new Set(apiRequests.map(r => config.dataMapping.status[r.status] || r.status))], [apiRequests, statusFilters.all, config.dataMapping.status]);
 
   return (
     <div className="flex flex-col h-full bg-background animate-in fade-in duration-300 relative">
@@ -86,7 +137,11 @@ export const ChangeRequestList = ({ onClose, onBack, onViewRequest, onChatWithUs
       {/* Request Cards */}
       <div className="flex-1 px-5 pb-8 flex flex-col min-h-0">
         <div className="flex-1 flex flex-col gap-4 items-center w-full px-1 overflow-y-auto pb-4 custom-scrollbar">
-          {filteredRequests.length > 0 ? (
+          {loading ? (
+             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-10">
+                <p>Loading requests...</p>
+             </div>
+          ) : filteredRequests.length > 0 ? (
             filteredRequests.map((request) => (
               <div 
                 key={request.id}

@@ -214,6 +214,17 @@ export const APP_CONFIG: AppConfig = {
       escalation_details: "/escalation/{user_id}/{session_id}",
       user_escalations: "/escalation/{user_id}",
       delete_chat: "/user_chats/delete",
+      developer_change_requests: "/developer/change-requests/",
+      developer_change_request_details: "/developer/change-requests/{id}/",
+      developer_change_request_update: "/developer/change-requests/{id}/",
+      developer_change_requests_attachments_create: "/developer/change-requests/attachments/",
+      user_change_requests: "/user/change-requests/",
+      user_change_request_details: "/user/change-requests/{id}/",
+      user_change_request_update: "/user/change-requests/{id}/",
+      user_change_requests_attachments_create: "/user/change-requests/attachments/",
+      user_change_request_delete: "/user/change-requests/{id}/",
+      purchased_modules: "/user/purchased-modules/",
+      user_change_requests_attachments_delete: "/user/change-requests/attachments/{id}/",
     },
 
     pageEndpoints: {
@@ -375,15 +386,9 @@ export const APP_CONFIG: AppConfig = {
       name: import.meta.env.VITE_ASSISTANT_NAME || "Assistant",
     },
 
-    followUpOptions: import.meta.env.VITE_FOLLOW_UP_OPTIONS 
-      ? import.meta.env.VITE_FOLLOW_UP_OPTIONS.split(",") 
-      : [
-          "change request status",
-          "bug report status",
-          "support request",
+    followUpOptions: [
           "Update a previous change request",
-          "payment issue",
-          "complaint",
+          "Delete a previous change request",
         ],
 
     modificationTags: import.meta.env.VITE_MODIFICATION_TAGS
@@ -402,47 +407,30 @@ export const APP_CONFIG: AppConfig = {
 
     changeRequests: [
       {
-        id: "1",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "In progress",
+        id: "101",
+        userName: "Ahmed Tech",
+        module: "Inventory Management Pro",
+        purchasedDate: "2024-03-15",
+        status: "opened",
         statusColor: "#9C6F46",
-        requestedChanges: "The client requested additional reporting features in the inventory module...",
-        attachments: [
-          { name: "requirements.pdf", size: "20 MB", type: "pdf" },
-          { name: "screenshot.png", size: "20 MB", type: "png" },
-        ]
+        requestedChanges: "Need to add a custom PDF export feature for monthly reports.",
+        attachments: [{ name: "export_spec.pdf", size: "1.2 MB", type: "pdf" }]
       },
       {
-        id: "2",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "Completed",
-        statusColor: "#00642F",
-        requestedChanges: "Implemented custom export to excel functionality.",
-        attachments: [
-          { name: "final_report.pdf", size: "15 MB", type: "pdf" },
-        ]
-      },
-      {
-        id: "3",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "In progress",
+        id: "102",
+        userName: "Sara Wilson",
+        module: "E-commerce Dashboard",
+        purchasedDate: "2024-04-10",
+        status: "in_progress",
         statusColor: "#9C6F46",
-        requestedChanges: "Add support for multiple warehouses.",
-        attachments: []
-      },
+        requestedChanges: "The inventory sync is lagging on mobile devices. Please optimize.",
+        attachments: [{ name: "screen_record.mp4", size: "4.5 MB", type: "video" }]
+      }
     ],
 
     purchasedModules: [
-      { id: "1", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "2", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "3", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "4", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
+      { id: "1", name: "Inventory Management Pro", purchaseDate: "2024-03-15" },
+      { id: "2", name: "E-commerce Dashboard", purchaseDate: "2024-04-10" },
     ],
 
     dataMapping: {
@@ -463,6 +451,17 @@ export const APP_CONFIG: AppConfig = {
         create_message: "/user_message",
         create_user_chat: "/user_chat",
         delete_chat: "/user_chats/delete",
+        developer_change_requests: "/developer/change-requests/",
+        developer_change_request_details: "/developer/change-requests/{id}/",
+        developer_change_request_update: "/developer/change-requests/{id}/",
+        developer_change_requests_attachments_create: "/developer/change-requests/attachments/",
+        user_change_requests: "/user/change-requests/",
+        user_change_request_details: "/user/change-requests/{id}/",
+        user_change_request_update: "/user/change-requests/{id}/",
+        user_change_requests_attachments_create: "/user/change-requests/attachments/",
+        user_change_request_delete: "/user/change-requests/{id}/",
+        purchased_modules: "/user/purchased-modules/",
+        user_change_requests_attachments_delete: "/user/change-requests/attachments/{id}/",
       },
       pageEndpoints: {
         home: "home",

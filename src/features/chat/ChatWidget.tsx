@@ -7,6 +7,7 @@ import { ChangeRequestList } from "./ChangeRequestList";
 import { ChangeRequestDetails } from "./ChangeRequestDetails";
 import { CreateChangeRequest } from "./CreateChangeRequest";
 import { RequestChangeModal } from "./RequestChangeModal";
+import { SubmissionStatusModal } from "./SubmissionStatusModal";
 import { Faq, ChatConfig } from "@/config/app-config";
 import { ChatProvider } from "./context/ChatProvider";
 import { useChat } from "./context/ChatContext";
@@ -25,9 +26,12 @@ const ChatWidgetContent = () => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [selectedRequestId, setSelectedRequestId] = useState<string>("");
+  const [selectedModuleId, setSelectedModuleId] = useState<string>("");
   const [selectedChatId, setSelectedChatId] = useState<string | undefined>();
   const [followUpMode, setFollowUpMode] = useState<"options" | "history">("options");
   const [isFaqOnly, setIsFaqOnly] = useState<boolean>(false);
+  const [submissionStatus, setSubmissionStatus] = useState<"success" | "error" | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string>("");
 
   const { layout, animations, user, style } = config;
   const { apiClient, currentPage } = useChat();
@@ -45,8 +49,10 @@ const ChatWidgetContent = () => {
     const questionText = typeof option === "string" ? option : option.question;
     const lowerText = questionText.toLowerCase();
     const isStatusCheck = lowerText.includes("change request status");
+    const isUpdateCheck = lowerText.includes("update a previous change request") || lowerText.includes("تحديث طلب تغيير سابق");
+    const isDeleteCheck = lowerText.includes("delete a previous change request") || lowerText.includes("حذف طلب تغيير سابق");
 
-    if (isStatusCheck) {
+    if (isStatusCheck || isUpdateCheck || isDeleteCheck) {
       setView("change-requests");
       return;
     }
@@ -175,6 +181,7 @@ const ChatWidgetContent = () => {
               onCancel={() => setView("welcome")}
               onSubmit={(moduleId) => {
                 console.log("Selected module:", moduleId);
+                setSelectedModuleId(moduleId);
                 setView("create-change-request");
               }}
               onChatWithUs={handleChatWithUs}
@@ -189,8 +196,10 @@ const ChatWidgetContent = () => {
                 setView(backView as ChatView);
               }}
               onSubmit={() => {
-                setSelectedOption(`I'm submitting changes for request #${selectedRequestId}`);
-                setView("chat");
+                setStatusMessage(role === "user" 
+                  ? "Your update has been submitted successfully." 
+                  : "The change request has been updated successfully.");
+                setSubmissionStatus("success");
               }}
             />
           )}
@@ -198,11 +207,47 @@ const ChatWidgetContent = () => {
             <CreateChangeRequest
               onClose={() => setView("closed")}
               onCancel={() => setView("welcome")}
-              onSubmit={(data) => {
+              onSubmit={async (data) => {
                 console.log("Creating request:", data);
-                setSelectedOption(`I'd like to request changes: ${data.tags.join(", ")}`);
-                setSelectedAnswer("Request received! Our team will review your details and get back to you shortly.");
-                setView("chat");
+                try {
+                  const newRequest = await chatService.createUserChangeRequest({
+                    module_id: Number(selectedModuleId),
+                    change_details: data.details,
+                    developer_id: 1, // defaulting to 1 for now
+                    module_tags: data.tags,
+                  });
+
+                  // Upload any attachments
+                  if (data.files && data.files.length > 0) {
+                    await Promise.all(
+                      data.files.map(file =>
+                        chatService.uploadUserAttachment(newRequest.id, file.name, file)
+                      )
+                    );
+                  }
+
+                  setStatusMessage("Your change request has been successfully submitted! Our team will review it and get back to you shortly.");
+                  setSubmissionStatus("success");
+                } catch (error) {
+                  console.error("Failed to create change request:", error);
+                  setStatusMessage("We encountered an error while processing your request. Please check your connection and try again.");
+                  setSubmissionStatus("error");
+                }
+              }}
+            />
+          )}
+
+          {submissionStatus && (
+            <SubmissionStatusModal
+              status={submissionStatus}
+              message={statusMessage}
+              onClose={() => {
+                const isSuccess = submissionStatus === "success";
+                setSubmissionStatus(null);
+                if (isSuccess) {
+                  const nextView = config.rolePermissions[role]?.requestChangeView || "welcome";
+                  setView(nextView as ChatView);
+                }
               }}
             />
           )}

@@ -5,7 +5,7 @@ import { useChat } from "./context/ChatContext";
 interface CreateChangeRequestProps {
   onClose: () => void;
   onCancel: () => void;
-  onSubmit: (data: { tags: string[]; details: string; files: File[] }) => void;
+  onSubmit: (data: { tags: string[]; details: string; files: File[] }) => Promise<void> | void;
 }
 
 export const CreateChangeRequest = ({ onClose, onCancel, onSubmit }: CreateChangeRequestProps) => {
@@ -16,6 +16,7 @@ export const CreateChangeRequest = ({ onClose, onCancel, onSubmit }: CreateChang
   const [selectedTags, setSelectedTags] = useState<string[]>(modificationTags.slice(0, 4));
   const [details, setDetails] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const toggleTag = (tag: string) => {
@@ -189,11 +190,19 @@ export const CreateChangeRequest = ({ onClose, onCancel, onSubmit }: CreateChang
             {content.details.actions.cancel}
           </button>
           <button
-            onClick={() => onSubmit({ tags: selectedTags, details, files: selectedFiles })}
-            className="w-full py-3 rounded-xl text-white text-[16px] sm:text-[18px] font-bold hover:brightness-95 transition-all shadow-md active:scale-[0.98]"
+            onClick={async () => {
+              try {
+                setIsSubmitting(true);
+                await onSubmit({ tags: selectedTags, details, files: selectedFiles });
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl text-white text-[16px] sm:text-[18px] font-bold hover:brightness-95 transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             style={{ background: style.gradients.button }}
           >
-            {content.details.actions.submit}
+            {isSubmitting ? "Submitting..." : content.details.actions.submit}
           </button>
         </div>
       </div>
