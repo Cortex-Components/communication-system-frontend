@@ -20,8 +20,23 @@ export default defineConfig(({ mode }) => {
         ignored: ["**/.env", "**/.env.*"],
       },
       proxy: {
+        "/api/config": {
+          target: "http://localhost:3001",
+          changeOrigin: true,
+          secure: false,
+        },
+        "/api/build": {
+          target: "http://localhost:3001",
+          changeOrigin: true,
+          secure: false,
+        },
         "/api": {
-          target: env.VITE_PROXY_TARGET || "http://142.93.167.9:8010",
+          target: "http://142.93.167.9:8010",
+          changeOrigin: true,
+          secure: false,
+        },
+        "/admin": {
+          target: "http://142.93.167.9:8010",
           changeOrigin: true,
           secure: false,
         },

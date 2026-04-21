@@ -14,9 +14,9 @@ const App = () => {
         setToken(null);
     };
 
-    /* if (!token) {
+    if (!token) {
         return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
-    } */
+    }
 
     return (
         <React.StrictMode>

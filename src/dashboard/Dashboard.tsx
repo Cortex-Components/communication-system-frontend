@@ -33,8 +33,10 @@ interface AiConfig {
 }
 
 interface KnowledgeStatus {
-    chunks_count: number;
+    chunk_count: number;
     cache_valid: boolean;
+    pdf_count?: number;
+    pdf_names?: string[];
 }
 
 const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
@@ -55,12 +57,26 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         fetchConfig();
         fetchAiConfig();
         fetchKnowledgeStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handleUnauthorized = () => {
+        onLogout();
+    };
+
+    const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+        const res = await fetch(url, options);
+        if (res.status === 401) {
+            handleUnauthorized();
+            throw new Error('Unauthorized');
+        }
+        return res;
+    };
 
     const fetchKnowledgeStatus = async () => {
         const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/v1/knowledge/status`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -73,7 +89,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const fetchAiConfig = async () => {
         const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/v1/tenant-ai-config`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -141,7 +157,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/v1/tenant-ai-config`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -174,7 +190,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
 
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/v1/knowledge/upload/batch`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/upload/batch`, {
                 method: 'POST',
                 headers: { 
                     'Authorization': `Bearer ${token}`
@@ -203,7 +219,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/v1/knowledge/pdf/${filename}`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/pdf/${filename}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -429,7 +445,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 <div className="bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 transition-all hover:shadow-md">
                                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Training Chunks</p>
                                                     <div className="flex items-end gap-2">
-                                                        <p className="text-4xl font-black text-slate-900 leading-none">{knowledgeStatus.chunks_count || 0}</p>
+                                                        <p className="text-4xl font-black text-slate-900 leading-none">{knowledgeStatus.chunk_count || 0}</p>
                                                         <p className="text-sm font-medium text-slate-400 mb-1">Indexed</p>
                                                     </div>
                                                 </div>
@@ -440,6 +456,21 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                         <p className="text-xl font-bold text-slate-900">{knowledgeStatus.cache_valid ? 'Verified' : 'Syncing...'}</p>
                                                     </div>
                                                     <p className="text-xs text-slate-400 mt-2">{knowledgeStatus.cache_valid ? 'System is fully optimized.' : 'Rebuilding index from new assets.'}</p>
+                                                </div>
+                                                <div className="bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 transition-all hover:shadow-md md:col-span-2">
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Uploaded Assets ({knowledgeStatus.pdf_count || 0})</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {knowledgeStatus.pdf_names && knowledgeStatus.pdf_names.length > 0 ? (
+                                                            knowledgeStatus.pdf_names.map((name, i) => (
+                                                                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-600">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                                                    {name}
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <p className="text-xs text-slate-400">No documents indexed yet.</p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

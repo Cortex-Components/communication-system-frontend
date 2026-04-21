@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Loader2, Rocket, ShieldAlert } from 'lucide-react';
+import { Lock, Mail, Loader2, Rocket, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
 interface AdminLoginProps {
@@ -11,6 +11,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,6 +28,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
             });
 
             const data = await response.json();
+            console.log('Login response:', { status: response.status, data });
 
             if (response.ok) {
                 if (data.token) {
@@ -100,13 +102,20 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-6 py-3 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
+                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-12 py-3 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-slate-900 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 
