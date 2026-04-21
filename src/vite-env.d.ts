@@ -18,6 +18,7 @@ interface ImportMetaEnv {
   readonly VITE_ROLE_USER: string;
   readonly VITE_FOLLOW_UP_OPTIONS: string;
   readonly VITE_MODIFICATION_TAGS: string;
+  readonly VITE_WIDGET_TAG_NAME: string;
 }
 
 interface ImportMeta {
