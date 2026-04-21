@@ -52,6 +52,15 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
     const [uploadStatus, setUploadStatus] = useState<string>('idle');
     const [knowledgeStatus, setKnowledgeStatus] = useState<KnowledgeStatus | null>(null);
+    const [modal, setModal] = useState<{ 
+        show: boolean, 
+        title: string, 
+        message: string, 
+        type: 'success' | 'error' | 'info' | 'confirm',
+        onConfirm?: () => void
+    }>({ 
+        show: false, title: '', message: '', type: 'info' 
+    });
 
     useEffect(() => {
         fetchConfig();
@@ -201,21 +210,21 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 setUploadStatus('success');
                 setSelectedFiles(null);
                 fetchKnowledgeStatus(); // Refresh status after upload
-                alert('Files uploaded successfully!');
+                setModal({ show: true, title: 'Success', message: 'Files uploaded successfully!', type: 'success' });
                 setTimeout(() => setUploadStatus('idle'), 3000);
             } else {
                 setUploadStatus('error');
-                alert('Failed to upload files.');
+                setModal({ show: true, title: 'Error', message: 'Failed to upload files.', type: 'error' });
             }
         } catch (error) {
             setUploadStatus('error');
             console.error('Failed to upload PDFs', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred during upload.', type: 'error' });
         }
     };
 
     const handleDeletePdf = async (filename: string) => {
         if (!filename) return;
-        if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
 
         const token = localStorage.getItem('admin_token');
         try {
@@ -224,13 +233,14 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                alert('File deleted successfully');
+                setModal({ show: true, title: 'Success', message: 'File deleted successfully', type: 'success' });
                 fetchKnowledgeStatus(); // Refresh status
             } else {
-                alert('Failed to delete file');
+                setModal({ show: true, title: 'Error', message: 'Failed to delete file', type: 'error' });
             }
         } catch (error) {
             console.error('Failed to delete PDF', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred during deletion.', type: 'error' });
         }
     };
 
@@ -459,12 +469,27 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 </div>
                                                 <div className="bg-slate-50/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 transition-all hover:shadow-md md:col-span-2">
                                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Uploaded Assets ({knowledgeStatus.pdf_count || 0})</p>
-                                                    <div className="flex flex-wrap gap-2">
+                                                    <div className="flex flex-wrap gap-3">
                                                         {knowledgeStatus.pdf_names && knowledgeStatus.pdf_names.length > 0 ? (
                                                             knowledgeStatus.pdf_names.map((name, i) => (
-                                                                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-600">
+                                                                <div key={i} className="group/file flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:border-slate-300 transition-all shadow-sm">
                                                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
-                                                                    {name}
+                                                                    <span className="max-w-[200px] truncate">{name}</span>
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setModal({
+                                                                                show: true,
+                                                                                title: 'Confirm Deletion',
+                                                                                message: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+                                                                                type: 'confirm',
+                                                                                onConfirm: () => handleDeletePdf(name)
+                                                                            });
+                                                                        }}
+                                                                        className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover/file:opacity-100"
+                                                                        title="Delete asset"
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                    </button>
                                                                 </div>
                                                             ))
                                                         ) : (
@@ -529,37 +554,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                             </button>
                                         </div>
 
-                                        <div className="mt-8 pt-8 border-t border-slate-100">
-                                            <div className="bg-rose-50/50 rounded-3xl p-8 border border-rose-100/50">
-                                                <div className="flex items-center gap-3 mb-4">
-                                                    <div className="p-2 bg-rose-500 rounded-xl text-white">
-                                                        <Trash2 size={18} />
-                                                    </div>
-                                                    <h3 className="text-lg font-black text-slate-900">Asset Management</h3>
-                                                </div>
-                                                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-                                                    Remove specific documents from the knowledge engine. Enter the exact filename from your index.
-                                                </p>
-                                                <div className="flex flex-col sm:flex-row gap-3">
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="e.g. training_data_v1.pdf" 
-                                                        className="flex-1 px-5 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-rose-500 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
-                                                        id="delete-filename-input"
-                                                    />
-                                                    <button 
-                                                        onClick={() => {
-                                                            const input = document.getElementById('delete-filename-input') as HTMLInputElement;
-                                                            handleDeletePdf(input.value);
-                                                            input.value = '';
-                                                        }}
-                                                        className="px-8 py-3.5 bg-rose-500 text-white rounded-2xl hover:bg-rose-600 transition-all font-bold shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2 active:scale-95"
-                                                    >
-                                                        Purge File
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+
                                     </div>
                                 ) : (
                                     <div className="space-y-8 animate-in fade-in duration-500">
@@ -713,6 +708,55 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-medium px-6 py-3 rounded-full shadow-xl flex items-center gap-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <CheckCircle size={16} className="text-emerald-400" />
                     Configuration saved successfully!
+                </div>
+            )}
+
+            {/* Premium Modal */}
+            {modal.show && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-white max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-500">
+                        <div className={`h-2 w-full ${modal.type === 'success' ? 'bg-emerald-500' : modal.type === 'error' ? 'bg-rose-500' : 'bg-slate-900'}`}></div>
+                        <div className="p-10 text-center">
+                            <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-6 ${
+                                modal.type === 'success' ? 'bg-emerald-50 text-emerald-500' : 
+                                modal.type === 'error' ? 'bg-rose-50 text-rose-500' : 
+                                modal.type === 'confirm' ? 'bg-amber-50 text-amber-500' :
+                                'bg-slate-50 text-slate-900'
+                            }`}>
+                                {modal.type === 'success' ? <CheckCircle size={40} /> : 
+                                 modal.type === 'error' ? <AlertCircle size={40} /> : 
+                                 modal.type === 'confirm' ? <Trash2 size={40} /> :
+                                 <Bot size={40} />}
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 mb-3">{modal.title}</h3>
+                            <p className="text-slate-500 font-medium leading-relaxed mb-10">{modal.message}</p>
+                            
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={() => {
+                                        if (modal.type === 'confirm' && modal.onConfirm) {
+                                            modal.onConfirm();
+                                        }
+                                        setModal({ ...modal, show: false });
+                                    }}
+                                    className={`w-full py-4 text-white rounded-2xl transition-all font-black shadow-xl active:scale-95 ${
+                                        modal.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'
+                                    }`}
+                                >
+                                    {modal.type === 'confirm' ? 'Confirm Deletion' : 'Acknowledge'}
+                                </button>
+                                
+                                {modal.type === 'confirm' && (
+                                    <button 
+                                        onClick={() => setModal({ ...modal, show: false })}
+                                        className="w-full py-4 bg-white text-slate-500 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all font-bold active:scale-95"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
