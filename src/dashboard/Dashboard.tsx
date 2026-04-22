@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Settings, 
   Palette, 
@@ -15,7 +15,11 @@ import {
   LogOut,
   Bot,
   FileUp,
-  Trash2
+  Trash2,
+  HelpCircle,
+  Pencil,
+  PlusCircle,
+  Layout
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import '../main';
@@ -39,6 +43,14 @@ interface KnowledgeStatus {
     pdf_names?: string[];
 }
 
+interface Faq {
+    id: string;
+    page: string;
+    question: string;
+    description: string;
+    answer: string;
+}
+
 const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [config, setConfig] = useState<Record<string, string>>({});
     const [status, setStatus] = useState<string>('idle');
@@ -52,6 +64,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
     const [uploadStatus, setUploadStatus] = useState<string>('idle');
     const [knowledgeStatus, setKnowledgeStatus] = useState<KnowledgeStatus | null>(null);
+    const [faqs, setFaqs] = useState<Faq[]>([]);
+    const [faqPage, setFaqPage] = useState<string>('home');
+    const [faqStatus, setFaqStatus] = useState<string>('idle');
+    const [newFaq, setNewFaq] = useState({ question: '', description: '', answer: '' });
+    const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
     const [modal, setModal] = useState<{ 
         show: boolean, 
         title: string, 
@@ -62,27 +79,22 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         show: false, title: '', message: '', type: 'info' 
     });
 
-    useEffect(() => {
-        fetchConfig();
-        fetchAiConfig();
-        fetchKnowledgeStatus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
-    const handleUnauthorized = () => {
+
+    const handleUnauthorized = useCallback(() => {
         onLogout();
-    };
+    }, [onLogout]);
 
-    const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+    const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
         const res = await fetch(url, options);
         if (res.status === 401) {
             handleUnauthorized();
             throw new Error('Unauthorized');
         }
         return res;
-    };
-
-    const fetchKnowledgeStatus = async () => {
+    }, [handleUnauthorized]);
+    
+    const fetchKnowledgeStatus = useCallback(async () => {
         const token = localStorage.getItem('admin_token');
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/status`, {
@@ -93,9 +105,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         } catch (error) {
             console.error('Failed to fetch knowledge status', error);
         }
-    };
+    }, [fetchWithAuth]);
 
-    const fetchAiConfig = async () => {
+    const fetchAiConfig = useCallback(async () => {
         const token = localStorage.getItem('admin_token');
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
@@ -111,9 +123,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         } catch (error) {
             console.error('Failed to fetch AI config', error);
         }
-    };
+    }, [fetchWithAuth]);
 
-    const fetchConfig = async () => {
+    const fetchConfig = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/config`);
             const data = await res.json();
@@ -121,7 +133,121 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         } catch (error) {
             console.error('Failed to fetch config', error);
         }
-    };
+    }, []);
+
+    const fetchFaqs = useCallback(async () => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setFaqs(data);
+        } catch (error) {
+            console.error('Failed to fetch FAQs', error);
+        }
+    }, [faqPage, fetchWithAuth]);
+
+    useEffect(() => {
+        fetchConfig();
+        fetchAiConfig();
+        fetchKnowledgeStatus();
+        fetchFaqs();
+    }, [fetchConfig, fetchAiConfig, fetchKnowledgeStatus, fetchFaqs]);
+    
+    // Also fetch faqs when page changes
+    useEffect(() => {
+        if (activeTab === 'faqs') {
+            fetchFaqs();
+        }
+    }, [activeTab, fetchFaqs]);
+
+    const handleCreateFaq = useCallback(async () => {
+        if (!newFaq.question || !newFaq.answer) {
+            alert('Question and Answer are required');
+            return;
+        }
+
+        setFaqStatus('creating');
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(newFaq)
+            });
+            if (res.ok) {
+                setFaqStatus('idle');
+                setNewFaq({ question: '', description: '', answer: '' });
+                fetchFaqs();
+                setModal({ show: true, title: 'Success', message: 'FAQ created successfully!', type: 'success' });
+            } else {
+                setFaqStatus('error');
+                setModal({ show: true, title: 'Error', message: 'Failed to create FAQ.', type: 'error' });
+            }
+        } catch (error) {
+            setFaqStatus('error');
+            console.error('Failed to create FAQ', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred.', type: 'error' });
+        }
+    }, [faqPage, newFaq, fetchFaqs, fetchWithAuth]);
+
+    const handleDeleteFaq = useCallback(async (id: string) => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                fetchFaqs();
+                setModal({ show: true, title: 'Success', message: 'FAQ deleted successfully', type: 'success' });
+            } else {
+                setModal({ show: true, title: 'Error', message: 'Failed to delete FAQ', type: 'error' });
+            }
+        } catch (error) {
+            console.error('Failed to delete FAQ', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred.', type: 'error' });
+        }
+    }, [faqPage, fetchFaqs, fetchWithAuth]);
+
+    const handleUpdateFaq = useCallback(async () => {
+        if (!editingFaqId) return;
+        if (!newFaq.question || !newFaq.answer) {
+            alert('Question and Answer are required');
+            return;
+        }
+
+        setFaqStatus('saving');
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs/${editingFaqId}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(newFaq)
+            });
+            if (res.ok) {
+                setFaqStatus('idle');
+                setEditingFaqId(null);
+                setNewFaq({ question: '', description: '', answer: '' });
+                fetchFaqs();
+                setModal({ show: true, title: 'Success', message: 'FAQ updated successfully!', type: 'success' });
+            } else {
+                setFaqStatus('error');
+                setModal({ show: true, title: 'Error', message: 'Failed to update FAQ.', type: 'error' });
+            }
+        } catch (error) {
+            setFaqStatus('error');
+            console.error('Failed to update FAQ', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred.', type: 'error' });
+        }
+    }, [faqPage, editingFaqId, newFaq, fetchFaqs, fetchWithAuth]);
 
     const handleSaveConfig = async () => {
         setStatus('saving');
@@ -326,62 +452,68 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 italic-none">
             {/* Background decorative gradients */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-500/5 blur-[120px] rounded-full"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-500/10 blur-[120px] rounded-full"></div>
             </div>
 
             <div className="max-w-[1400px] mx-auto p-4 sm:p-8 relative z-10">
                 {/* Header */}
-                <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+                <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-8 lg:mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-10 h-10 bg-gradient-to-tr from-slate-900 to-slate-800 rounded-xl flex items-center justify-center shadow-lg">
+                            <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
                                 <Settings className="text-white w-5 h-5" />
                             </div>
-                            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Dashboard</h1>
+                            <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">Dashboard</h1>
                         </div>
                         <p className="text-slate-500 text-sm md:text-base max-w-xl">Configure and manage your intelligent chat infrastructure from one central command center.</p>
                     </div>
                     
-                    <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 w-full lg:w-auto">
                         <button 
                             onClick={activeTab === 'ai' ? handleSaveAiConfig : handleSaveConfig}
                             disabled={status === 'saving' || aiStatus === 'saving'}
-                            className="flex-1 sm:flex-none justify-center px-5 py-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-semibold text-slate-700 shadow-sm flex items-center gap-2 group"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-5 sm:py-2.5 bg-white border border-slate-200 rounded-2xl hover:border-indigo-300 transition-all group shadow-sm active:scale-95"
                         >
-                            {(status === 'saving' || aiStatus === 'saving') ? <RefreshCcw size={18} className="animate-spin" /> : <Settings size={18} className="group-hover:rotate-45 transition-transform" />}
-                            Save Changes
+                            <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-indigo-50 transition-colors">
+                                {(status === 'saving' || aiStatus === 'saving') ? <RefreshCcw size={18} className="animate-spin" /> : <Settings size={18} className="text-slate-400 group-hover:text-indigo-600 group-hover:rotate-45 transition-all" />}
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold text-slate-600 group-hover:text-indigo-600">Save Changes</span>
                         </button>
                         
                         <button 
                             onClick={() => setShowPreview(!showPreview)}
-                            className={`flex-1 sm:flex-none justify-center px-5 py-2.5 rounded-xl transition-all font-semibold shadow-sm flex items-center gap-2 border ${
+                            className={`flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-5 sm:py-2.5 rounded-2xl transition-all shadow-sm active:scale-95 border ${
                                 showPreview 
-                                ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700' 
-                                : 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-100'
+                                ? 'bg-indigo-600 text-white border-indigo-600' 
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
                             }`}
                         >
-                            {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
-                            {showPreview ? "Hide Preview" : "Live Preview"}
+                            <div className={`p-2 rounded-lg transition-colors ${showPreview ? 'bg-white/20' : 'bg-slate-50 group-hover:bg-indigo-50'}`}>
+                                {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </div>
+                            <span className="text-xs sm:text-sm font-bold">Live Preview</span>
                         </button>
 
                         <button 
                             onClick={handleBuild}
                             disabled={status === 'building'}
-                            className="flex-1 sm:flex-none justify-center px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-semibold shadow-xl shadow-slate-900/10 flex items-center gap-2 active:scale-[0.98]"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-6 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all font-bold shadow-xl shadow-indigo-900/10 active:scale-95"
                         >
-                            {status === 'building' ? <RefreshCcw size={18} className="animate-spin" /> : <Hammer size={18} />}
-                            Deploy Widget
+                            <div className="p-2 bg-white/20 rounded-lg">
+                                {status === 'building' ? <RefreshCcw size={18} className="animate-spin" /> : <Hammer size={18} />}
+                            </div>
+                            <span className="text-xs sm:text-sm">Deploy Widget</span>
                         </button>
-                        
-                        <div className="w-[1px] h-10 bg-slate-200 mx-1 hidden sm:block"></div>
                         
                         <button 
                             onClick={onLogout}
-                            className="flex-1 sm:flex-none justify-center px-5 py-2.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl hover:bg-rose-100 transition-all font-semibold flex items-center gap-2"
+                            className="flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-5 sm:py-2.5 bg-rose-50 text-rose-700 border border-rose-100 rounded-2xl hover:bg-rose-100 transition-all font-bold active:scale-95 group"
                         >
-                            <LogOut size={18} />
-                            Logout
+                            <div className="p-2 bg-white/50 rounded-lg group-hover:scale-110 transition-transform">
+                                <LogOut size={18} />
+                            </div>
+                            <span className="text-xs sm:text-sm">Logout</span>
                         </button>
                     </div>
                 </header>
@@ -389,65 +521,73 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 <div className="grid grid-cols-12 gap-8">
                     {/* Sidebar Tabs */}
                     <div className="col-span-12 lg:col-span-3 space-y-6 animate-in fade-in slide-in-from-left-4 duration-700">
-                        <nav className="flex lg:flex-col overflow-x-auto lg:overflow-visible space-x-2 lg:space-x-0 lg:space-y-1.5 p-1.5 bg-white/60 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm scrollbar-hide">
+                        <nav className="flex lg:flex-col overflow-x-auto lg:overflow-visible p-1 sm:p-1.5 bg-slate-100/50 lg:bg-white/60 backdrop-blur-md rounded-[1.25rem] lg:rounded-2xl border border-slate-200/60 lg:border-slate-200 shadow-inner lg:shadow-sm scrollbar-hide">
                             {[
                                 { id: 'general', icon: Settings, label: 'General' },
-                                { id: 'content', icon: MessageSquare, label: 'Content & UI' },
+                                { id: 'content', icon: Layout, label: 'Content & UI' },
                                 { id: 'persona', icon: Globe, label: 'Assistant' },
                                 { id: 'ai', icon: Bot, label: 'AI Configuration' },
                                 { id: 'knowledge', icon: FileUp, label: 'Knowledge' },
+                                { id: 'faqs', icon: HelpCircle, label: 'FAQs Management' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap lg:w-full ${
+                                    className={`flex items-center gap-2.5 px-4 py-2.5 lg:py-3.5 rounded-xl lg:rounded-xl text-[13px] lg:text-sm font-bold transition-all duration-300 whitespace-nowrap lg:w-full group/tab ${
                                         activeTab === tab.id 
-                                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 translate-x-1 lg:translate-x-2' 
-                                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+                                        ? 'bg-white lg:bg-gradient-to-r lg:from-indigo-600 lg:to-violet-600 text-indigo-600 lg:text-white shadow-md lg:shadow-xl lg:shadow-indigo-600/20 lg:translate-x-2 lg:border-l-4 lg:border-indigo-400' 
+                                        : 'text-slate-500 hover:text-slate-900 lg:hover:bg-white lg:hover:text-indigo-600 lg:hover:shadow-md lg:hover:translate-x-1'
                                     }`}
                                 >
-                                    <tab.icon size={18} className="flex-shrink-0" />
+                                    <tab.icon size={16} className={`flex-shrink-0 transition-transform ${activeTab === tab.id ? 'scale-110 lg:text-white' : 'group-hover/tab:scale-110'}`} />
                                     <span>{tab.label}</span>
+                                    {activeTab === tab.id && (
+                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-500 lg:bg-white animate-pulse hidden lg:block"></div>
+                                    )}
                                 </button>
                             ))}
                         </nav>
                         
                         {/* Status Card */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                            <h3 className="text-xs font-bold mb-4 uppercase tracking-[0.15em] text-slate-400">System Engine</h3>
-                            <div className="space-y-4">
+                        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200 p-6 shadow-sm group overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 blur-2xl rounded-full -mr-12 -mt-12 transition-all group-hover:bg-indigo-500/10"></div>
+                            <h3 className="text-[10px] font-black mb-4 uppercase tracking-[0.2em] text-slate-400">System Engine</h3>
+                            <div className="space-y-4 relative z-10">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-slate-600">Status</span>
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${status === 'building' ? 'bg-amber-400 animate-pulse' : status === 'success' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-                                        <span className="text-sm font-bold capitalize text-slate-900">{status}</span>
+                                    <span className="text-[11px] font-bold text-slate-500">Infrastructure</span>
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-lg">
+                                        <div className={`w-2 h-2 rounded-full ${status === 'building' ? 'bg-amber-400 animate-pulse' : status === 'success' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-300'}`}></div>
+                                        <span className="text-[10px] font-black uppercase text-slate-700">{status}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-slate-600">Sync</span>
-                                    <span className="text-xs font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500">v1.2.4</span>
+                                    <span className="text-[11px] font-bold text-slate-500">Core Version</span>
+                                    <span className="text-[10px] font-mono font-bold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg border border-indigo-100/50">v1.2.4-stable</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Main Content Area */}
-                    <div className="col-span-12 lg:col-span-9 space-y-8 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
-                        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden">
-                            <div className="p-6 sm:p-10">
-                                <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-slate-900">
-                                    <span className="bg-slate-900 text-white p-2 rounded-lg">                                        {(() => {
+                    <div className="col-span-12 lg:col-span-9 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
+                        <div className="bg-white rounded-2xl sm:rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div className="p-5 sm:p-10">
+                                <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-slate-800">
+                                    <span className="bg-gradient-to-tr from-indigo-600 to-violet-600 text-white p-2 rounded-lg shadow-md">                                        {(() => {
                                             const tab = [
                                                 { id: 'general', icon: Settings },
-                                                { id: 'content', icon: MessageSquare },
+                                                { id: 'content', icon: Layout },
                                                 { id: 'persona', icon: Globe },
                                                 { id: 'ai', icon: Bot },
                                                 { id: 'knowledge', icon: FileUp },
+                                                { id: 'faqs', icon: HelpCircle },
                                             ].find(t => t.id === activeTab);
                                             return tab && <tab.icon size={20} />;
                                         })()}
                                     </span>
-                                    {activeTab === 'knowledge' ? 'Knowledge Assets' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + ' Configuration'}
+                                    {activeTab === 'knowledge' ? 'Knowledge Assets' : 
+                                     activeTab === 'faqs' ? 'FAQ Management' :
+                                     activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + ' Configuration'}
                                 </h2>
                                 
                                 {activeTab === 'knowledge' ? (
@@ -549,7 +689,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                             <button 
                                                 onClick={handleUploadPdfs}
                                                 disabled={uploadStatus === 'uploading' || !selectedFiles}
-                                                className="w-full sm:w-auto px-10 py-4 bg-slate-900 text-white rounded-[1.25rem] hover:bg-slate-800 transition-all font-black shadow-2xl shadow-slate-900/20 flex items-center justify-center gap-3 active:scale-95 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
+                                                className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-[1.25rem] hover:opacity-90 transition-all font-black shadow-2xl shadow-indigo-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
                                             >
                                                 {uploadStatus === 'uploading' ? <RefreshCcw size={22} className="animate-spin" /> : <CheckCircle size={22} />}
                                                 Synchronize Data
@@ -557,6 +697,164 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                         </div>
 
 
+                                    </div>
+                                ) : activeTab === 'faqs' ? (
+                                    <div className="space-y-10">
+                                        {/* Page Selector */}
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50 p-6 rounded-3xl border border-slate-100">
+                                            <div>
+                                                <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Select Context</h4>
+                                                <p className="text-xs text-slate-400 font-medium">Manage FAQs for a specific page</p>
+                                            </div>
+                                            <select 
+                                                value={faqPage}
+                                                onChange={(e) => setFaqPage(e.target.value)}
+                                                className="w-full sm:w-64 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-bold text-slate-700 shadow-sm"
+                                            >
+                                                {(config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',').map(p => (
+                                                    <option key={p.trim()} value={p.trim()}>{p.trim().toUpperCase()}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* FAQ List */}
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between px-2">
+                                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Stored Questions ({faqs.length})</h4>
+                                            </div>
+                                            
+                                            {faqs.length > 0 ? (
+                                                <div className="grid gap-4">
+                                                    {faqs.map((faq) => (
+                                                        <div key={faq.id} className="group relative bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 transition-all hover:shadow-xl hover:border-slate-300">
+                                                            <div className="flex justify-between items-start gap-4 mb-3">
+                                                                <h5 className="font-black text-slate-800 leading-tight">{faq.question}</h5>
+                                                                <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                setEditingFaqId(faq.id);
+                                                                                setNewFaq({
+                                                                                    question: faq.question,
+                                                                                    description: faq.description || '',
+                                                                                    answer: faq.answer
+                                                                                });
+                                                                                // Scroll to form
+                                                                                document.getElementById('faq-form-container')?.scrollIntoView({ behavior: 'smooth' });
+                                                                            }}
+                                                                            className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-all"
+                                                                            title="Edit FAQ"
+                                                                        >
+                                                                            <Pencil size={18} />
+                                                                        </button>
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setModal({
+                                                                                show: true,
+                                                                                title: 'Delete FAQ',
+                                                                                message: 'Are you sure you want to delete this FAQ? This cannot be undone.',
+                                                                                type: 'confirm',
+                                                                                onConfirm: () => handleDeleteFaq(faq.id)
+                                                                            });
+                                                                        }}
+                                                                        className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                                        title="Delete FAQ"
+                                                                    >
+                                                                        <Trash2 size={18} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-sm text-slate-500 leading-relaxed">{faq.answer}</p>
+                                                            {faq.description && (
+                                                                <p className="mt-3 text-[10px] text-slate-400 font-medium italic">Internal Note: {faq.description}</p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center">
+                                                    <HelpCircle size={40} className="mx-auto text-slate-200 mb-4" />
+                                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No FAQs defined for this page</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Add FAQ Form */}
+                                        <div id="faq-form-container" className="bg-white border border-slate-200 rounded-2xl sm:rounded-[2.5rem] p-6 sm:p-10 shadow-sm relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                                            
+                                            <div className="flex items-center gap-4 mb-8 relative z-10">
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-colors ${editingFaqId ? 'bg-indigo-600' : 'bg-gradient-to-br from-indigo-600 to-violet-600 shadow-indigo-200'}`}>
+                                                    {editingFaqId ? <Pencil size={24} /> : <HelpCircle size={24} />}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <h3 className="text-xl font-black text-slate-800">{editingFaqId ? 'Update FAQ' : 'Add New FAQ'}</h3>
+                                                        {editingFaqId && (
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setEditingFaqId(null);
+                                                                    setNewFaq({ question: '', description: '', answer: '' });
+                                                                }}
+                                                                className="text-[10px] font-black text-rose-500 uppercase hover:underline"
+                                                            >
+                                                                Cancel Edit
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">{editingFaqId ? 'Currently modifying selection' : 'Train your assistant with context'}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-8 relative z-10">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="text-sm font-black text-slate-800 uppercase tracking-widest">Question</label>
+                                                        <div className="w-1 h-1 rounded-full bg-indigo-400"></div>
+                                                    </div>
+                                                    <input 
+                                                        type="text" 
+                                                        value={newFaq.question}
+                                                        onChange={(e) => setNewFaq(prev => ({ ...prev, question: e.target.value }))}
+                                                        className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner hover:bg-white"
+                                                        placeholder="e.g. How do I reset my password?"
+                                                    />
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <label className="text-sm font-black text-slate-800 uppercase tracking-widest">Answer</label>
+                                                        <div className="w-1 h-1 rounded-full bg-indigo-400"></div>
+                                                    </div>
+                                                    <textarea 
+                                                        value={newFaq.answer}
+                                                        onChange={(e) => setNewFaq(prev => ({ ...prev, answer: e.target.value }))}
+                                                        rows={4}
+                                                        className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner hover:bg-white resize-none"
+                                                        placeholder="Provide a clear, helpful response..."
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Internal Note (Optional)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={newFaq.description}
+                                                        onChange={(e) => setNewFaq(prev => ({ ...prev, description: e.target.value }))}
+                                                        className="w-full px-5 py-4 bg-slate-50/30 border border-slate-100 rounded-2xl focus:border-slate-400 focus:outline-none transition-all text-xs font-medium text-slate-500 placeholder:text-slate-200"
+                                                        placeholder="Context for support team..."
+                                                    />
+                                                </div>
+                                                
+                                                <button 
+                                                    onClick={editingFaqId ? handleUpdateFaq : handleCreateFaq}
+                                                    disabled={faqStatus === 'creating' || faqStatus === 'saving'}
+                                                    className={`w-full mt-4 text-white py-5 rounded-3xl font-black text-lg transition-all active:scale-[0.98] shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 ${editingFaqId ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20' : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:drop-shadow-lg shadow-indigo-600/20'}`}
+                                                >
+                                                    {(faqStatus === 'creating' || faqStatus === 'saving') ? <RefreshCcw size={22} className="animate-spin" /> : <CheckCircle size={22} />}
+                                                    {editingFaqId ? 'Update FAQ Content' : 'Publish FAQ'}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-8 animate-in fade-in duration-500">
@@ -720,8 +1018,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                 return React.createElement(tag, { config: liveConfig });
             })()}
             {savedToast && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm font-medium px-6 py-3 rounded-full shadow-xl flex items-center gap-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <CheckCircle size={16} className="text-emerald-400" />
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-sm font-bold px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <CheckCircle size={20} className="text-white" />
                     Configuration saved successfully!
                 </div>
             )}
@@ -729,7 +1027,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             {/* Premium Modal */}
             {modal.show && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-white max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-500">
+                    <div className="bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl border border-white max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-500">
                         <div className={`h-2 w-full ${modal.type === 'success' ? 'bg-emerald-500' : modal.type === 'error' ? 'bg-rose-500' : 'bg-slate-900'}`}></div>
                         <div className="p-10 text-center">
                             <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center mb-6 ${
@@ -755,7 +1053,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                         setModal({ ...modal, show: false });
                                     }}
                                     className={`w-full py-4 text-white rounded-2xl transition-all font-black shadow-xl active:scale-95 ${
-                                        modal.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'
+                                        modal.type === 'confirm' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20' : 'bg-gradient-to-r from-indigo-600 to-violet-600 shadow-indigo-600/20'
                                     }`}
                                 >
                                     {modal.type === 'confirm' ? 'Confirm Deletion' : 'Acknowledge'}

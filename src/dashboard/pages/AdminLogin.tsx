@@ -51,14 +51,14 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
         <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] overflow-hidden relative font-sans selection:bg-indigo-100 italic-none">
             {/* Background decorative elements */}
             <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/5 blur-[120px] rounded-full"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/5 blur-[120px] rounded-full"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[120px] rounded-full"></div>
             </div>
             
             <div className="relative w-full max-w-lg p-6 sm:p-10 z-10 animate-in fade-in zoom-in-95 duration-1000">
                 {/* Logo or Brand */}
                 <div className="flex flex-col items-center mb-12 space-y-4">
-                    <div className="w-20 h-20 bg-gradient-to-tr from-slate-900 to-slate-800 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-900/20 transform hover:rotate-6 transition-transform duration-500">
+                    <div className="w-20 h-20 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-600/20 transform hover:rotate-6 transition-transform duration-500">
                         <Rocket className="text-white w-10 h-10" />
                     </div>
                     <div className="text-center">
@@ -76,9 +76,9 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                         )}
 
                         <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-900 ml-1 uppercase tracking-widest">Email</label>
+                            <label className="text-xs font-black text-slate-800 ml-1 uppercase tracking-widest">Email</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
                                     <Mail className="w-5 h-5" />
                                 </div>
                                 <input
@@ -87,18 +87,18 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="admin@example.com"
-                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-6 py-3 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
+                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-6 py-3 rounded-[1.5rem] focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex justify-between items-center px-1">
-                                <label className="text-sm font-black text-slate-900 uppercase tracking-widest">Password</label>
+                                <label className="text-sm font-black text-slate-800 uppercase tracking-widest">Password</label>
                                 <a href="#" className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">Forgot?</a>
                             </div>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
                                     <Lock className="w-5 h-5" />
                                 </div>
                                 <input
@@ -107,7 +107,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-12 py-3 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
+                                    className="w-full bg-slate-50/50 border border-slate-200 text-slate-900 pl-14 pr-12 py-3 rounded-[1.5rem] focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:outline-none transition-all placeholder:text-slate-300 font-medium"
                                 />
                                 <button
                                     type="button"
@@ -122,7 +122,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-slate-900/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-3 mt-4 text-lg"
+                            className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:shadow-2xl hover:shadow-indigo-500/20 text-white font-black py-5 rounded-[1.5rem] shadow-xl shadow-indigo-900/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-3 mt-4 text-lg"
                         >
                             {isLoading ? (
                                 <>
