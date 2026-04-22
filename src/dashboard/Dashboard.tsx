@@ -280,7 +280,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         alert('Copied to clipboard!');
     };
 
-    const configGroups: Record<string, { key: string, label: string, type: string, default?: string }[]> = {
+    const configGroups: Record<string, { key?: string, id?: string, label: string, type: string, default?: string }[]> = {
         general: [
             { key: 'VITE_APP_NAME', label: 'App Name', type: 'text' },
             { key: 'VITE_SUPPORT_EMAIL', label: 'Support Email', type: 'email' },
@@ -308,15 +308,17 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             { key: 'VITE_DEFAULT_USER_ID', label: 'Default User ID', type: 'number' },
         ],
         ai: [
-            { key: 'business_name', label: 'Business Name', type: 'text', default: 'Support AI' },
-            { key: 'business_description', label: 'Business Description', type: 'textarea' },
-            { key: 'ai_tone', label: 'AI Tone', type: 'text', default: 'professional' },
-            { key: 'default_language', label: 'Default Language', type: 'text', default: 'en' },
-            { key: 'system_prompt_override', label: 'System Prompt Override', type: 'textarea' },
-            { key: 'grounding_template_override', label: 'Grounding Template Override', type: 'textarea' },
+            { key: 'business_name', label: 'Business Identity', type: 'text', default: 'Support AI' },
+            { key: 'business_description', label: 'Core Business Description', type: 'textarea' },
+            { key: 'ai_tone', label: 'Conversational Tone', type: 'text', default: 'professional' },
+            { id: 'divider-1', label: 'Knowledge & Guidance', type: 'divider' },
+            { key: 'default_language', label: 'Default Response Language', type: 'text', default: 'en' },
+            { key: 'system_prompt_override', label: 'Primary System Prompt', type: 'textarea' },
+            { key: 'grounding_template_override', label: 'Context Grounding Template', type: 'textarea' },
+            { id: 'divider-2', label: 'Advanced Behavior', type: 'divider' },
             { key: 'brand_voice_rules', label: 'Brand Voice Rules (JSON)', type: 'textarea', default: '{}' },
-            { key: 'custom_intents', label: 'Custom Intents (Comma separated)', type: 'text', default: '' },
-            { key: 'escalation_threshold_override', label: 'Escalation Threshold', type: 'number', default: '0' },
+            { key: 'custom_intents', label: 'Custom Interaction Intents', type: 'text', default: '' },
+            { key: 'escalation_threshold_override', label: 'Human Escalation Threshold', type: 'number', default: '0' },
         ],
     };
 
@@ -392,7 +394,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                 { id: 'general', icon: Settings, label: 'General' },
                                 { id: 'content', icon: MessageSquare, label: 'Content & UI' },
                                 { id: 'persona', icon: Globe, label: 'Assistant' },
-                                { id: 'ai', icon: Bot, label: 'AI Logic' },
+                                { id: 'ai', icon: Bot, label: 'AI Configuration' },
                                 { id: 'knowledge', icon: FileUp, label: 'Knowledge' },
                             ].map((tab) => (
                                 <button
@@ -558,53 +560,66 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                     </div>
                                 ) : (
                                     <div className="space-y-8 animate-in fade-in duration-500">
-                                        {(configGroups[activeTab as keyof typeof configGroups] || []).map((field) => (
-                                            <div key={field.key} className="space-y-3 group">
-                                                <div className="flex justify-between items-end">
-                                                    <div className="space-y-1">
-                                                        <label className="text-sm font-black text-slate-900 uppercase tracking-wider">{field.label}</label>
-                                                        <p className="text-xs text-slate-400 font-medium">{field.key}</p>
-                                                    </div>
+                                        {(configGroups[activeTab as keyof typeof configGroups] || []).map((field, idx) => (
+                                            field.type === 'divider' ? (
+                                                <div key={`div-${idx}`} className="pt-8 pb-2 border-b border-slate-100 mb-4">
+                                                    <h4 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.25em]">{field.label}</h4>
                                                 </div>
-                                                
-                                                <div className="relative">
-                                                    {field.type === 'textarea' ? (
-                                                        <textarea 
-                                                            value={activeTab === 'ai' ? (aiConfig[field.key as keyof AiConfig] as string || '') : (config[field.key] || '')} 
-                                                            onChange={(e) => activeTab === 'ai' ? handleAiInputChange(field.key as keyof AiConfig, e.target.value) : handleInputChange(field.key, e.target.value)}
-                                                            rows={activeTab === 'ai' ? 6 : 3}
-                                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-all resize-none font-medium text-slate-700 placeholder:text-slate-300"
-                                                            placeholder={field.default || `Specify ${field.label.toLowerCase()}...`}
-                                                        />
-                                                    ) : field.type === 'color' ? (
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-xl shadow-slate-200">
+                                            ) : (
+                                                <div key={field.key || field.id || idx} className="space-y-3 group">
+                                                    <div className="flex justify-between items-end">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <label className="text-sm font-black text-slate-900 uppercase tracking-wider">{field.label}</label>
+                                                                {activeTab === 'ai' && <div className="w-1 h-1 rounded-full bg-indigo-400"></div>}
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{field.key}</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="relative">
+                                                        {field.type === 'textarea' ? (
+                                                                <textarea 
+                                                                    value={activeTab === 'ai' 
+                                                                        ? (field.key ? (aiConfig[field.key as keyof AiConfig] as string || '') : '') 
+                                                                        : (field.key ? (config[field.key] || '') : '')} 
+                                                                    onChange={(e) => field.key && (activeTab === 'ai' ? handleAiInputChange(field.key as keyof AiConfig, e.target.value) : handleInputChange(field.key, e.target.value))}
+                                                                    rows={activeTab === 'ai' ? (field.key === 'brand_voice_rules' ? 8 : 4) : 3}
+                                                                    className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all resize-none font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white"
+                                                                    placeholder={field.default || `Specify ${field.label.toLowerCase()}...`}
+                                                                />
+                                                        ) : field.type === 'color' ? (
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="relative w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-xl shadow-slate-200">
+                                                                    <input 
+                                                                        type="color" 
+                                                                        value={(field.key && config[field.key]) || field.default || '#000000'} 
+                                                                        onChange={(e) => field.key && handleInputChange(field.key, e.target.value)}
+                                                                        className="absolute inset-0 w-[200%] h-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer"
+                                                                    />
+                                                                </div>
                                                                 <input 
-                                                                    type="color" 
-                                                                    value={config[field.key] || field.default || '#000000'} 
-                                                                    onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                                                    className="absolute inset-0 w-[200%] h-[200%] -translate-x-1/4 -translate-y-1/4 cursor-pointer"
+                                                                    type="text" 
+                                                                    value={(field.key && config[field.key]) || field.default || ''} 
+                                                                    onChange={(e) => field.key && handleInputChange(field.key, e.target.value)}
+                                                                    className="flex-1 px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-mono uppercase tracking-widest text-sm shadow-inner group-hover:bg-white"
+                                                                    placeholder="#000000"
                                                                 />
                                                             </div>
+                                                        ) : (
                                                             <input 
-                                                                type="text" 
-                                                                value={config[field.key] || field.default || ''} 
-                                                                onChange={(e) => handleInputChange(field.key, e.target.value)}
-                                                                className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-mono uppercase tracking-widest text-sm"
-                                                                placeholder="#000000"
+                                                                type={field.type} 
+                                                                value={activeTab === 'ai' 
+                                                                    ? (field.key ? (aiConfig[field.key as keyof AiConfig] as string || '') : '') 
+                                                                    : (field.key ? (config[field.key] || '') : '')} 
+                                                                onChange={(e) => field.key && (activeTab === 'ai' ? handleAiInputChange(field.key as keyof AiConfig, e.target.value) : handleInputChange(field.key, e.target.value))}
+                                                                className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white"
+                                                                placeholder={field.default || `Specify ${field.label.toLowerCase()}...`}
                                                             />
-                                                        </div>
-                                                    ) : (
-                                                        <input 
-                                                            type={field.type} 
-                                                            value={activeTab === 'ai' ? (aiConfig[field.key as keyof AiConfig] as string || '') : (config[field.key] || '')} 
-                                                            onChange={(e) => activeTab === 'ai' ? handleAiInputChange(field.key as keyof AiConfig, e.target.value) : handleInputChange(field.key, e.target.value)}
-                                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300"
-                                                            placeholder={field.default || `Specify ${field.label.toLowerCase()}...`}
-                                                        />
-                                                    )}
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )
                                         ))}
                                     </div>
                                 )}
