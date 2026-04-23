@@ -371,20 +371,40 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     };
 
     const handleBuild = async () => {
-        // Save the config to .env before building
-        await handleSaveConfig();
-        
         setStatus('building');
-        setBuildLog('Starting build process...');
+        setBuildLog('Writing config and starting build...');
+
         try {
-            const res = await fetch(`${API_BASE_URL}/api/build`, { method: 'POST' });
-            const data = await res.json();
+            const res = await fetch(`${API_BASE_URL}/api/build`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+
             if (res.ok) {
-                setBuildLog(data.stdout || 'Build completed successfully.');
-                setScriptLink(data.scriptLink);
+                // Get filename from content-disposition or default
+                const contentDisposition = res.headers.get('content-disposition') || '';
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                const filename = filenameMatch ? filenameMatch[1] : 'cortex-chat-widget.zip';
+
+                // Download the zip file
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                setBuildLog('Build complete! Widget zip downloaded.');
                 setStatus('success');
+                setSavedToast(true);
+                setTimeout(() => setSavedToast(false), 3000);
             } else {
-                setBuildLog(data.details || 'Build failed.');
+                const data = await res.json().catch(() => ({}));
+                setBuildLog(data.error || data.details || 'Build failed.');
                 setStatus('error');
             }
         } catch (error) {
@@ -960,23 +980,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                     )}
                                 </div>
 
-                                {scriptLink && status === 'success' && (
-                                    <div className="mb-8 space-y-3">
-                                        <label className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.2em] block">Script Origin</label>
-                                        <div className="flex gap-3">
-                                            <div className="flex-1 px-5 py-4 bg-white/80 border border-emerald-100 rounded-2xl font-mono text-sm text-emerald-900 overflow-x-auto whitespace-nowrap scrollbar-hide shadow-inner">
-                                                {scriptLink}
-                                            </div>
-                                            <button 
-                                                onClick={() => copyToClipboard(scriptLink)}
-                                                className="p-4 bg-white text-emerald-700 rounded-2xl border border-emerald-100 hover:bg-emerald-50 transition-all shadow-sm active:scale-90"
-                                            >
-                                                <Link size={20} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
+                                
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block">Runtime Console</label>
                                     <pre className="w-full bg-[#1e293b] text-slate-100 p-8 rounded-[1.5rem] font-mono text-xs overflow-x-auto max-h-80 shadow-2xl scrollbar-thin">

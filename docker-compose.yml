@@ -1,0 +1,17 @@
+services:
+  dashboard-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dashboard-api
+    ports:
+      - "3001:3001"
+    volumes:
+      - builds:/app/builds
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  builds:
+    driver: local

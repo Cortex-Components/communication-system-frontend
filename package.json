@@ -10,11 +10,12 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dashboard:server": "node dashboard-server.js",
+    "dashboard:server": "node server/index.js",
     "dashboard": "npm run dashboard:server"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.83.0",
+    "archiver": "^7.0.1",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
