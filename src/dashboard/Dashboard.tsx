@@ -74,6 +74,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
     const [tenantApiKey, setTenantApiKey] = useState<string>('');
     const [regeneratingKey, setRegeneratingKey] = useState(false);
+    const [availablePages, setAvailablePages] = useState<string[]>([]);
     const [modal, setModal] = useState<{ 
         show: boolean, 
         title: string, 
@@ -156,13 +157,81 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
     }, []);
 
+    const fetchPages = useCallback(async () => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    setAvailablePages(data.map((p: { page: string }) => p.page));
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch pages', error);
+        }
+    }, [fetchWithAuth]);
+
+    const deletePage = useCallback(async (pageToDelete: string) => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages/${pageToDelete}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setModal({ show: true, title: 'Success', message: `Page '${pageToDelete}' deleted successfully.`, type: 'success' });
+                fetchPages();
+                setFaqPage('all');
+            } else {
+                const txt = await res.text();
+                setModal({ show: true, title: 'Error', message: `Failed to delete page: ${txt}`, type: 'error' });
+            }
+        } catch (error) {
+            console.error('Failed to delete page', error);
+        }
+    }, [fetchPages, fetchWithAuth]);
+
     const fetchFaqs = useCallback(async () => {
         const token = localStorage.getItem('admin_token');
-        // Try query param approach first as path param was 405ing
-        const url = faqPage === 'all' 
-            ? `${API_BASE_URL}/api/v1/admin/faqs` 
-            : `${API_BASE_URL}/api/v1/admin/faqs?page=${faqPage}`;
-            
+        
+        if (faqPage === 'all') {
+            const pagesToFetch = availablePages.length > 0 
+                ? availablePages 
+                : (config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',').map(p => p.trim());
+                
+            const allFaqs: Faq[] = [];
+            for (const page of pagesToFetch) {
+                const url = `${API_BASE_URL}/api/v1/admin/faqs?page=${page}`;
+                try {
+                    const res = await fetchWithAuth(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            allFaqs.push(...data.map(f => ({ ...f, page })));
+                        }
+                    } else {
+                        // Fallback to path param if query param fails
+                        const fbUrl = `${API_BASE_URL}/api/v1/admin/page/${page}/faqs`;
+                        const fbRes = await fetchWithAuth(fbUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                        if (fbRes.ok) {
+                            const data = await fbRes.json();
+                            if (Array.isArray(data)) {
+                                allFaqs.push(...data.map(f => ({ ...f, page })));
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Error fetching FAQs for ${page}`, e);
+                }
+            }
+            setFaqs(allFaqs);
+            return;
+        }
+
+        const url = `${API_BASE_URL}/api/v1/admin/faqs?page=${faqPage}`;
         try {
             const res = await fetchWithAuth(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -170,7 +239,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             
             if (!res.ok) {
                 // If query param fails with 404/405, fallback to path param approach
-                if (faqPage !== 'all' && (res.status === 404 || res.status === 405)) {
+                if (res.status === 404 || res.status === 405) {
                     const fallbackUrl = `${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`;
                     const fallbackRes = await fetchWithAuth(fallbackUrl, {
                         headers: { 'Authorization': `Bearer ${token}` }
@@ -191,14 +260,15 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         } catch (error) {
             console.error('Failed to fetch FAQs', error);
         }
-    }, [faqPage, fetchWithAuth]);
+    }, [faqPage, availablePages, config, fetchWithAuth]);
 
     useEffect(() => {
         fetchConfig();
         fetchAiConfig();
         fetchKnowledgeStatus();
+        fetchPages();
         fetchFaqs();
-    }, [fetchConfig, fetchAiConfig, fetchKnowledgeStatus, fetchFaqs]);
+    }, [fetchConfig, fetchAiConfig, fetchKnowledgeStatus, fetchPages, fetchFaqs]);
     
     // Also fetch faqs when page changes
     useEffect(() => {
@@ -984,16 +1054,36 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Select Context</h4>
                                                 <p className="text-xs text-slate-400 font-medium">Manage FAQs for a specific page</p>
                                             </div>
-                                            <select 
-                                                value={faqPage}
-                                                onChange={(e) => setFaqPage(e.target.value)}
-                                                className="w-full sm:w-64 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-bold text-slate-700 shadow-sm"
-                                            >
-                                                <option value="all">ALL PAGES</option>
-                                                {(config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',').map(p => (
-                                                    <option key={p.trim()} value={p.trim()}>{p.trim().toUpperCase()}</option>
-                                                ))}
-                                            </select>
+                                            <div className="flex items-center gap-2">
+                                                <select 
+                                                    value={faqPage}
+                                                    onChange={(e) => setFaqPage(e.target.value)}
+                                                    className="w-full sm:w-64 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-bold text-slate-700 shadow-sm"
+                                                >
+                                                    <option value="all">ALL PAGES</option>
+                                                    {(availablePages.length > 0 ? availablePages : (config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',')).map(p => (
+                                                        <option key={p.trim()} value={p.trim()}>{p.trim().toUpperCase()}</option>
+                                                    ))}
+                                                </select>
+
+                                                {faqPage !== 'all' && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setModal({
+                                                                show: true,
+                                                                title: 'Delete Page',
+                                                                message: `Are you sure you want to delete the '${faqPage}' page and all its FAQs? This cannot be undone.`,
+                                                                type: 'confirm',
+                                                                onConfirm: () => deletePage(faqPage)
+                                                            });
+                                                        }}
+                                                        className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                                                        title="Delete this page"
+                                                    >
+                                                        <Trash2 size={20} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* FAQ List */}
