@@ -16,10 +16,13 @@ import {
   Bot,
   FileUp,
   Trash2,
+  PlusCircle,
+  Layout,
+  Shield,
+  Key,
   HelpCircle,
   Pencil,
-  PlusCircle,
-  Layout
+  Mail
 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import '../main';
@@ -65,10 +68,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [uploadStatus, setUploadStatus] = useState<string>('idle');
     const [knowledgeStatus, setKnowledgeStatus] = useState<KnowledgeStatus | null>(null);
     const [faqs, setFaqs] = useState<Faq[]>([]);
-    const [faqPage, setFaqPage] = useState<string>('home');
+    const [faqPage, setFaqPage] = useState<string>('all');
     const [faqStatus, setFaqStatus] = useState<string>('idle');
     const [newFaq, setNewFaq] = useState({ question: '', description: '', answer: '' });
     const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
+    const [tenantApiKey, setTenantApiKey] = useState<string>('');
+    const [regeneratingKey, setRegeneratingKey] = useState(false);
     const [modal, setModal] = useState<{ 
         show: boolean, 
         title: string, 
@@ -100,8 +105,13 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const data = await res.json();
-            setKnowledgeStatus(data);
+            if (res.ok) {
+                const data = await res.json();
+                setKnowledgeStatus(data);
+            } else {
+                const text = await res.text();
+                console.error(`Failed to fetch knowledge status: ${res.status}`, text);
+            }
         } catch (error) {
             console.error('Failed to fetch knowledge status', error);
         }
@@ -113,6 +123,13 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error(`Failed to fetch AI config: ${res.status}`, text);
+                return;
+            }
+
             const data = await res.json();
             // Convert array and object to strings for easier editing in text fields
             setAiConfig({
@@ -128,8 +145,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const fetchConfig = useCallback(async () => {
         try {
             const res = await fetch(`${API_BASE_URL}/api/config`);
-            const data = await res.json();
-            setConfig(data);
+            if (res.ok) {
+                const data = await res.json();
+                setConfig(data);
+            } else {
+                console.error(`Failed to fetch config: ${res.status}`);
+            }
         } catch (error) {
             console.error('Failed to fetch config', error);
         }
@@ -137,12 +158,36 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
     const fetchFaqs = useCallback(async () => {
         const token = localStorage.getItem('admin_token');
+        // Try query param approach first as path param was 405ing
+        const url = faqPage === 'all' 
+            ? `${API_BASE_URL}/api/v1/admin/faqs` 
+            : `${API_BASE_URL}/api/v1/admin/faqs?page=${faqPage}`;
+            
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`, {
+            const res = await fetchWithAuth(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            
+            if (!res.ok) {
+                // If query param fails with 404/405, fallback to path param approach
+                if (faqPage !== 'all' && (res.status === 404 || res.status === 405)) {
+                    const fallbackUrl = `${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`;
+                    const fallbackRes = await fetchWithAuth(fallbackUrl, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (fallbackRes.ok) {
+                        const data = await fallbackRes.json();
+                        setFaqs(Array.isArray(data) ? data : []);
+                        return;
+                    }
+                }
+                const text = await res.text();
+                console.error(`Failed to fetch FAQs (${res.status}):`, text);
+                return;
+            }
+
             const data = await res.json();
-            setFaqs(data);
+            setFaqs(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Failed to fetch FAQs', error);
         }
@@ -170,8 +215,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         setFaqStatus('creating');
         const token = localStorage.getItem('admin_token');
+        const targetPage = faqPage === 'all' ? 'home' : faqPage; // Default to home if on 'all' view
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -195,10 +241,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
     }, [faqPage, newFaq, fetchFaqs, fetchWithAuth]);
 
-    const handleDeleteFaq = useCallback(async (id: string) => {
+    const handleDeleteFaq = useCallback(async (id: string, pageContext?: string) => {
         const token = localStorage.getItem('admin_token');
+        const targetPage = pageContext || faqPage;
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs/${id}`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -223,8 +270,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         setFaqStatus('saving');
         const token = localStorage.getItem('admin_token');
+        // We might need to find the page for this FAQ if we're in 'all' view
+        const currentFaq = faqs.find(f => f.id === editingFaqId);
+        const targetPage = currentFaq?.page || faqPage;
+
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs/${editingFaqId}`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${editingFaqId}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -247,7 +298,35 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             console.error('Failed to update FAQ', error);
             setModal({ show: true, title: 'Error', message: 'An unexpected error occurred.', type: 'error' });
         }
-    }, [faqPage, editingFaqId, newFaq, fetchFaqs, fetchWithAuth]);
+    }, [faqPage, faqs, editingFaqId, newFaq, fetchFaqs, fetchWithAuth]);
+
+    const handleRegenerateApiKey = useCallback(async () => {
+        setRegeneratingKey(true);
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/regenerate-api-key`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok && data.api_key) {
+                setTenantApiKey(data.api_key);
+                setModal({ 
+                    show: true, 
+                    title: 'New API Key Generated', 
+                    message: 'Your new API key has been generated. Please copy it now as it will not be shown again for security reasons.', 
+                    type: 'success' 
+                });
+            } else {
+                setModal({ show: true, title: 'Error', message: 'Failed to regenerate API key.', type: 'error' });
+            }
+        } catch (error) {
+            console.error('Failed to regenerate API key', error);
+            setModal({ show: true, title: 'Error', message: 'An unexpected error occurred.', type: 'error' });
+        } finally {
+            setRegeneratingKey(false);
+        }
+    }, [fetchWithAuth]);
 
     const handleSaveConfig = async () => {
         setStatus('saving');
@@ -529,6 +608,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                 { id: 'ai', icon: Bot, label: 'AI Configuration' },
                                 { id: 'knowledge', icon: FileUp, label: 'Knowledge' },
                                 { id: 'faqs', icon: HelpCircle, label: 'FAQs Management' },
+                                { id: 'security', icon: Shield, label: 'Security & API' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -581,16 +661,214 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 { id: 'ai', icon: Bot },
                                                 { id: 'knowledge', icon: FileUp },
                                                 { id: 'faqs', icon: HelpCircle },
+                                                { id: 'security', icon: Shield },
                                             ].find(t => t.id === activeTab);
                                             return tab && <tab.icon size={20} />;
                                         })()}
                                     </span>
                                     {activeTab === 'knowledge' ? 'Knowledge Assets' : 
                                      activeTab === 'faqs' ? 'FAQ Management' :
+                                     activeTab === 'security' ? 'Security & API Access' :
                                      activeTab.charAt(0).toUpperCase() + activeTab.slice(1) + ' Configuration'}
                                 </h2>
-                                
-                                {activeTab === 'knowledge' ? (
+
+                                {activeTab === 'security' ? (
+                                    <div className="space-y-10">
+                                        <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/30 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                                                        <Key size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-slate-800">Tenant API Key</h3>
+                                                        <p className="text-sm text-slate-500 font-medium">Authentication for your chat widget requests</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-6">
+                                                    <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Current Active Key</p>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex-1 bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl font-mono text-sm text-slate-600 truncate">
+                                                                {tenantApiKey || '••••••••••••••••••••••••••••••••'}
+                                                            </div>
+                                                            {tenantApiKey && (
+                                                                <button 
+                                                                    onClick={() => copyToClipboard(tenantApiKey)}
+                                                                    className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                                    title="Copy to clipboard"
+                                                                >
+                                                                    <Copy size={20} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-6 flex items-start gap-4">
+                                                        <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                                                            <AlertCircle size={20} />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-black text-amber-800 uppercase tracking-wider mb-1">Warning: Regenerating Key</h4>
+                                                            <p className="text-sm text-amber-700 leading-relaxed">
+                                                                Regenerating your API key will immediately invalidate the current one. Any active chat widgets using the old key will stop functioning until they are updated with the new key.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex justify-end">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setModal({
+                                                                    show: true,
+                                                                    title: 'Confirm Key Regeneration',
+                                                                    message: 'Are you sure you want to regenerate your API key? This will break existing integrations until they are updated.',
+                                                                    type: 'confirm',
+                                                                    onConfirm: handleRegenerateApiKey
+                                                                });
+                                                            }}
+                                                            disabled={regeneratingKey}
+                                                            className="px-8 py-3.5 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all font-black shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95 disabled:opacity-50"
+                                                        >
+                                                            {regeneratingKey ? <RefreshCcw size={20} className="animate-spin" /> : <RefreshCcw size={20} />}
+                                                            Regenerate New Key
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50/30 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-violet-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-violet-100">
+                                                        <Shield size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-slate-800">CORS Origins</h3>
+                                                        <p className="text-sm text-slate-500 font-medium">Whitelist domains authorized to use your chat widget</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-6">
+                                                    <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Authorized Origins (Separate by comma)</label>
+                                                        <textarea 
+                                                            value={config['VITE_CORS_ORIGINS'] || ''}
+                                                            onChange={(e) => handleInputChange('VITE_CORS_ORIGINS', e.target.value)}
+                                                            className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500 focus:outline-none transition-all resize-none font-mono text-sm text-slate-700 placeholder:text-slate-300 shadow-inner"
+                                                            placeholder="https://example.com, http://localhost:3000"
+                                                            rows={3}
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex justify-end">
+                                                        <button 
+                                                            onClick={async () => {
+                                                                const token = localStorage.getItem('admin_token');
+                                                                try {
+                                                                    const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
+                                                                        method: 'PUT',
+                                                                        headers: { 
+                                                                            'Content-Type': 'application/json',
+                                                                            'Authorization': `Bearer ${token}` 
+                                                                        },
+                                                                        body: JSON.stringify({ 
+                                                                            cors_origins: config['VITE_CORS_ORIGINS'] || '*' 
+                                                                        })
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        const data = await res.json();
+                                                                        if (data.notification_email) {
+                                                                            handleInputChange('VITE_SUPPORT_EMAIL', data.notification_email);
+                                                                        }
+                                                                        setModal({ show: true, title: 'Success', message: 'CORS settings updated successfully!', type: 'success' });
+                                                                    } else {
+                                                                        const txt = await res.text();
+                                                                        setModal({ show: true, title: 'Error', message: `Update failed: ${txt}`, type: 'error' });
+                                                                    }
+                                                                } catch (error) {
+                                                                    setModal({ show: true, title: 'Error', message: 'Network error occurred.', type: 'error' });
+                                                                }
+                                                            }}
+                                                            className="px-8 py-3.5 bg-violet-600 text-white rounded-2xl hover:bg-violet-700 transition-all font-black shadow-xl shadow-violet-200 flex items-center gap-3 active:scale-95"
+                                                        >
+                                                            <CheckCircle size={20} />
+                                                            Update CORS Policy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/30 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-100">
+                                                        <Mail size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-black text-slate-800">Notification Channels</h3>
+                                                        <p className="text-sm text-slate-500 font-medium">Configure where you receive system alerts and human escalation requests</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-6">
+                                                    <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Primary Alert Email</label>
+                                                        <input 
+                                                            type="email"
+                                                            value={config['VITE_SUPPORT_EMAIL'] || ''}
+                                                            onChange={(e) => handleInputChange('VITE_SUPPORT_EMAIL', e.target.value)}
+                                                            className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner"
+                                                            placeholder="alerts@yourbusiness.com"
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex justify-end">
+                                                        <button 
+                                                            onClick={async () => {
+                                                                const token = localStorage.getItem('admin_token');
+                                                                try {
+                                                                    const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/notification-email`, {
+                                                                        method: 'PUT',
+                                                                        headers: { 
+                                                                            'Content-Type': 'application/json',
+                                                                            'Authorization': `Bearer ${token}` 
+                                                                        },
+                                                                        body: JSON.stringify({ 
+                                                                            notification_email: config['VITE_SUPPORT_EMAIL'] || '' 
+                                                                        })
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        const data = await res.json();
+                                                                        if (data.cors_origins) {
+                                                                            handleInputChange('VITE_CORS_ORIGINS', data.cors_origins);
+                                                                        }
+                                                                        setModal({ show: true, title: 'Success', message: 'Notification settings updated successfully!', type: 'success' });
+                                                                    } else {
+                                                                        const txt = await res.text();
+                                                                        setModal({ show: true, title: 'Error', message: `Update failed: ${txt}`, type: 'error' });
+                                                                    }
+                                                                } catch (error) {
+                                                                    setModal({ show: true, title: 'Error', message: 'Network error occurred.', type: 'error' });
+                                                                }
+                                                            }}
+                                                            className="px-8 py-3.5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all font-black shadow-xl shadow-emerald-200 flex items-center gap-3 active:scale-95"
+                                                        >
+                                                            <CheckCircle size={20} />
+                                                            Save Notification Settings
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : activeTab === 'knowledge' ? (
                                     <div className="space-y-10">
                                         {knowledgeStatus && (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -711,6 +989,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 onChange={(e) => setFaqPage(e.target.value)}
                                                 className="w-full sm:w-64 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-bold text-slate-700 shadow-sm"
                                             >
+                                                <option value="all">ALL PAGES</option>
                                                 {(config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',').map(p => (
                                                     <option key={p.trim()} value={p.trim()}>{p.trim().toUpperCase()}</option>
                                                 ))}
@@ -728,7 +1007,14 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                     {faqs.map((faq) => (
                                                         <div key={faq.id} className="group relative bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 transition-all hover:shadow-xl hover:border-slate-300">
                                                             <div className="flex justify-between items-start gap-4 mb-3">
-                                                                <h5 className="font-black text-slate-800 leading-tight">{faq.question}</h5>
+                                                                <div className="flex flex-col gap-1">
+                                                                    {faqPage === 'all' && (
+                                                                        <span className="inline-block px-2 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase rounded-md w-fit mb-1">
+                                                                            {faq.page}
+                                                                        </span>
+                                                                    )}
+                                                                    <h5 className="font-black text-slate-800 leading-tight">{faq.question}</h5>
+                                                                </div>
                                                                 <div className="flex items-center gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
                                                                         <button 
                                                                             onClick={() => {
@@ -753,7 +1039,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                                                 title: 'Delete FAQ',
                                                                                 message: 'Are you sure you want to delete this FAQ? This cannot be undone.',
                                                                                 type: 'confirm',
-                                                                                onConfirm: () => handleDeleteFaq(faq.id)
+                                                                                onConfirm: () => handleDeleteFaq(faq.id, faq.page)
                                                                             });
                                                                         }}
                                                                         className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
