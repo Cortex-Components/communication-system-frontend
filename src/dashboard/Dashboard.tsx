@@ -75,6 +75,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const [tenantApiKey, setTenantApiKey] = useState<string>('');
     const [regeneratingKey, setRegeneratingKey] = useState(false);
     const [availablePages, setAvailablePages] = useState<string[]>([]);
+    const [corsOrigins, setCorsOrigins] = useState<string[]>([]);
+    const [newCorsOrigin, setNewCorsOrigin] = useState<string>('');
+    const [corsOriginError, setCorsOriginError] = useState<string>('');
     const [modal, setModal] = useState<{ 
         show: boolean, 
         title: string, 
@@ -174,6 +177,21 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
     }, [fetchWithAuth]);
 
+    const fetchCorsOrigins = useCallback(async () => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCorsOrigins(Array.isArray(data.cors_origins) ? data.cors_origins : []);
+            }
+        } catch (error) {
+            console.error('Failed to fetch CORS origins', error);
+        }
+    }, [fetchWithAuth]);
+
     const deletePage = useCallback(async (pageToDelete: string) => {
         const token = localStorage.getItem('admin_token');
         try {
@@ -268,7 +286,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         fetchKnowledgeStatus();
         fetchPages();
         fetchFaqs();
-    }, [fetchConfig, fetchAiConfig, fetchKnowledgeStatus, fetchPages, fetchFaqs]);
+        fetchCorsOrigins();
+    }, [fetchConfig, fetchAiConfig, fetchKnowledgeStatus, fetchPages, fetchFaqs, fetchCorsOrigins]);
     
     // Also fetch faqs when page changes
     useEffect(() => {
@@ -555,6 +574,89 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         alert('Copied to clipboard!');
     };
 
+    // Validate URL using regex - must be valid URL or just "*"
+    const isValidCorsOrigin = (url: string): { valid: boolean; error?: string } => {
+        const trimmed = url.trim();
+        
+        if (!trimmed) {
+            return { valid: false, error: 'Origin cannot be empty' };
+        }
+        
+        if (trimmed === '*') {
+            return { valid: true };
+        }
+        
+        // Regex for valid HTTP/HTTPS URL
+        const urlRegex = /^https?:\/\/(?:localhost(:\d+)?|[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*)(?:\/[^\s]*)?$/;
+        
+        if (!urlRegex.test(trimmed)) {
+            return { valid: false, error: 'Invalid URL format. Must start with http:// or https://' };
+        }
+        
+        return { valid: true };
+    };
+
+    const handleAddCorsOrigin = () => {
+        const trimmed = newCorsOrigin.trim();
+        
+        // Check for duplicates
+        if (trimmed && corsOrigins.includes(trimmed)) {
+            setCorsOriginError('This origin already exists in the list');
+            return;
+        }
+        
+        // Validate
+        const validation = isValidCorsOrigin(trimmed);
+        if (!validation.valid) {
+            setCorsOriginError(validation.error || 'Invalid origin');
+            return;
+        }
+        
+        // Add to list
+        setCorsOrigins([...corsOrigins, trimmed]);
+        setNewCorsOrigin('');
+        setCorsOriginError('');
+    };
+
+    const handleRemoveCorsOrigin = (origin: string) => {
+        setCorsOrigins(corsOrigins.filter(o => o !== origin));
+    };
+
+    const handleCorsKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddCorsOrigin();
+        }
+    };
+
+    const handleUpdateCorsOrigins = async () => {
+        const token = localStorage.getItem('admin_token');
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ 
+                    cors_origins: corsOrigins.length > 0 ? corsOrigins : ['*'] 
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.notification_email) {
+                    handleInputChange('VITE_SUPPORT_EMAIL', data.notification_email);
+                }
+                setModal({ show: true, title: 'Success', message: 'CORS settings updated successfully!', type: 'success' });
+            } else {
+                const txt = await res.text();
+                setModal({ show: true, title: 'Error', message: `Update failed: ${txt}`, type: 'error' });
+            }
+        } catch (error) {
+            setModal({ show: true, title: 'Error', message: 'Network error occurred.', type: 'error' });
+        }
+    };
+
     const configGroups: Record<string, { key?: string, id?: string, label: string, type: string, default?: string }[]> = {
         general: [
             { key: 'VITE_APP_NAME', label: 'App Name', type: 'text' },
@@ -824,46 +926,88 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                 </div>
 
                                                 <div className="space-y-6">
+                                                    {/* Origin List */}
                                                     <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
-                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Authorized Origins (Separate by comma)</label>
-                                                        <textarea 
-                                                            value={config['VITE_CORS_ORIGINS'] || ''}
-                                                            onChange={(e) => handleInputChange('VITE_CORS_ORIGINS', e.target.value)}
-                                                            className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-violet-500/10 focus:border-violet-500 focus:outline-none transition-all resize-none font-mono text-sm text-slate-700 placeholder:text-slate-300 shadow-inner"
-                                                            placeholder="https://example.com, http://localhost:3000"
-                                                            rows={3}
-                                                        />
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Authorized Origins ({corsOrigins.length})</label>
+                                                            {corsOrigins.length > 0 && (
+                                                                <button
+                                                                    onClick={() => setCorsOrigins([])}
+                                                                    className="text-[10px] font-bold text-rose-500 hover:underline uppercase tracking-wider"
+                                                                >
+                                                                    Clear All
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {corsOrigins.length > 0 ? (
+                                                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                                                                {corsOrigins.map((origin, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="group flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl transition-all"
+                                                                    >
+                                                                        <Globe size={16} className="flex-shrink-0 text-violet-500" />
+                                                                        <span className="flex-1 font-mono text-sm text-slate-700 truncate">{origin}</span>
+                                                                        <button
+                                                                            onClick={() => handleRemoveCorsOrigin(origin)}
+                                                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                                            title="Remove origin"
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center py-8 text-slate-400">
+                                                                <Globe size={32} className="mx-auto mb-2 opacity-30" />
+                                                                <p className="text-xs font-medium">No origins added. Use "*" to allow all origins.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Add New Origin */}
+                                                    <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Add New Origin</label>
+                                                        <div className="flex gap-3">
+                                                            <input
+                                                                type="text"
+                                                                value={newCorsOrigin}
+                                                                onChange={(e) => {
+                                                                    setNewCorsOrigin(e.target.value);
+                                                                    setCorsOriginError('');
+                                                                }}
+                                                                onKeyDown={handleCorsKeyDown}
+                                                                className={`flex-1 px-5 py-4 bg-slate-50/50 border rounded-[1.5rem] focus:ring-2 focus:ring-violet-500/10 focus:outline-none transition-all font-mono text-sm text-slate-700 placeholder:text-slate-300 shadow-inner ${
+                                                                    corsOriginError 
+                                                                        ? 'border-rose-400 focus:border-rose-500' 
+                                                                        : 'border-slate-200 focus:border-violet-500'
+                                                                }`}
+                                                                placeholder="https://example.com or *"
+                                                            />
+                                                            <button
+                                                                onClick={handleAddCorsOrigin}
+                                                                disabled={!newCorsOrigin.trim()}
+                                                                className="px-6 py-4 bg-violet-600 text-white rounded-2xl hover:bg-violet-700 transition-all font-black shadow-md flex items-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            >
+                                                                <PlusCircle size={18} />
+                                                                Add
+                                                            </button>
+                                                        </div>
+                                                        {corsOriginError ? (
+                                                            <p className="text-[10px] text-rose-500 font-medium flex items-center gap-1">
+                                                                <AlertCircle size={12} />
+                                                                {corsOriginError}
+                                                            </p>
+                                                        ) : (
+                                                            <p className="text-[10px] text-slate-400">Press Enter or click Add to add the origin to the list</p>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex justify-end">
                                                         <button 
-                                                            onClick={async () => {
-                                                                const token = localStorage.getItem('admin_token');
-                                                                try {
-                                                                    const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
-                                                                        method: 'PUT',
-                                                                        headers: { 
-                                                                            'Content-Type': 'application/json',
-                                                                            'Authorization': `Bearer ${token}` 
-                                                                        },
-                                                                        body: JSON.stringify({ 
-                                                                            cors_origins: config['VITE_CORS_ORIGINS'] || '*' 
-                                                                        })
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        const data = await res.json();
-                                                                        if (data.notification_email) {
-                                                                            handleInputChange('VITE_SUPPORT_EMAIL', data.notification_email);
-                                                                        }
-                                                                        setModal({ show: true, title: 'Success', message: 'CORS settings updated successfully!', type: 'success' });
-                                                                    } else {
-                                                                        const txt = await res.text();
-                                                                        setModal({ show: true, title: 'Error', message: `Update failed: ${txt}`, type: 'error' });
-                                                                    }
-                                                                } catch (error) {
-                                                                    setModal({ show: true, title: 'Error', message: 'Network error occurred.', type: 'error' });
-                                                                }
-                                                            }}
+                                                            onClick={handleUpdateCorsOrigins}
                                                             className="px-8 py-3.5 bg-violet-600 text-white rounded-2xl hover:bg-violet-700 transition-all font-black shadow-xl shadow-violet-200 flex items-center gap-3 active:scale-95"
                                                         >
                                                             <CheckCircle size={20} />
@@ -916,8 +1060,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                                     });
                                                                     if (res.ok) {
                                                                         const data = await res.json();
-                                                                        if (data.cors_origins) {
-                                                                            handleInputChange('VITE_CORS_ORIGINS', data.cors_origins);
+                                                                        if (Array.isArray(data.cors_origins)) {
+                                                                            setCorsOrigins(data.cors_origins);
                                                                         }
                                                                         setModal({ show: true, title: 'Success', message: 'Notification settings updated successfully!', type: 'success' });
                                                                     } else {
