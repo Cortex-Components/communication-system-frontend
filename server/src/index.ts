@@ -2,16 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import crypto from 'crypto';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT = process.env.PORT || 3001;
-const PROJECT_ROOT = path.join(__dirname, '../..');
+const PORT = process.env.PORT || 3000;
+const PROJECT_ROOT = process.cwd();
 const BUILDS_DIR = path.join(PROJECT_ROOT, 'builds');
 
 app.use(cors());
@@ -39,25 +35,20 @@ app.post('/builds', (req, res) => {
 
   fs.mkdirSync(buildDir, { recursive: true });
 
-  // Write .env file
-  let envContent = '';
-  for (const [key, value] of Object.entries(config)) {
-    let safeValue = String(value);
-    if (safeValue.includes(' ') && !safeValue.startsWith('"')) {
-      safeValue = `"${safeValue}"`;
-    }
-    envContent += `${key}=${safeValue}\n`;
-  }
-  fs.writeFileSync(path.join(buildDir, '.env'), envContent);
-
   // Write initial status
   fs.writeFileSync(
     path.join(buildDir, 'status.json'),
     JSON.stringify({ status: 'pending', updated_at: new Date().toISOString() })
   );
 
-  // Start build asynchronously
-  exec('npm run build', { cwd: PROJECT_ROOT, timeout: 300000 }, (error) => {
+  // Build env with WIDGET_ prefix
+  const buildEnv: NodeJS.ProcessEnv = { ...process.env };
+  for (const [key, value] of Object.entries(config)) {
+    buildEnv[`WIDGET_${key}`] = String(value);
+  }
+
+  // Start build asynchronously with env vars
+  exec('npm run build', { cwd: PROJECT_ROOT, env: buildEnv, timeout: 300000 }, (error) => {
     if (error) {
       fs.writeFileSync(
         path.join(buildDir, 'status.json'),
@@ -105,7 +96,7 @@ app.delete('/builds/:tenant_id/:build_id', (req, res) => {
 
 // DELETE /builds?tenant_id=X - Delete all builds for a tenant
 app.delete('/builds', (req, res) => {
-  const { tenant_id } = req.query;
+  const tenant_id = req.query.tenant_id as string | undefined;
 
   if (!tenant_id || typeof tenant_id !== 'string') {
     res.status(400).json({ error: 'tenant_id query param is required' });
