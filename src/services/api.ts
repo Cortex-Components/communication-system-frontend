@@ -44,6 +44,7 @@ export class ApiClient {
     const response = await fetch(url, {
       headers: {
         'Accept-Language': this.language,
+        'X-Extended-ID': import.meta.env.VITE_EXTENDED_ID || '',
       }
     });
     if (!response.ok) {
@@ -60,6 +61,7 @@ export class ApiClient {
       headers: {
         'Content-Type': 'application/json',
         'Accept-Language': this.language,
+        'X-Extended-ID': import.meta.env.VITE_EXTENDED_ID || '',
       },
       body: JSON.stringify(data),
     });

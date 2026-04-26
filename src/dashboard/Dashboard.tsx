@@ -987,35 +987,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
                                                     <div className="flex justify-end">
                                                         <button 
-<<<<<<< HEAD
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
-                                                                        method: 'PUT',
-                                                                        headers: { 
-                                                                            'Content-Type': 'application/json'
-                                                                        },
-                                                                        body: JSON.stringify({ 
-                                                                            cors_origins: config['VITE_CORS_ORIGINS'] || '*' 
-                                                                        })
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        const data = await res.json();
-                                                                        if (data.notification_email) {
-                                                                            handleInputChange('VITE_SUPPORT_EMAIL', data.notification_email);
-                                                                        }
-                                                                        setModal({ show: true, title: 'Success', message: 'CORS settings updated successfully!', type: 'success' });
-                                                                    } else {
-                                                                        const txt = await res.text();
-                                                                        setModal({ show: true, title: 'Error', message: `Update failed: ${txt}`, type: 'error' });
-                                                                    }
-                                                                } catch (error) {
-                                                                    setModal({ show: true, title: 'Error', message: 'Network error occurred.', type: 'error' });
-                                                                }
-                                                            }}
-=======
                                                             onClick={handleUpdateCorsOrigins}
->>>>>>> 066d7149d4bcefa42e03447263213c1eb24c9243
                                                             className="px-8 py-3.5 bg-violet-600 text-white rounded-2xl hover:bg-violet-700 transition-all font-black shadow-xl shadow-violet-200 flex items-center gap-3 active:scale-95"
                                                         >
                                                             <CheckCircle size={20} />
