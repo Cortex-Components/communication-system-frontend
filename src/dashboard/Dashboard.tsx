@@ -92,7 +92,19 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [onLogout]);
 
     const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
-        const res = await fetch(url, options);
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            handleUnauthorized();
+            throw new Error('Access denied: No authentication token found.');
+        }
+
+        const headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+        };
+
+        const res = await fetch(url, { ...options, headers });
+        
         if (res.status === 401) {
             handleUnauthorized();
             throw new Error('Unauthorized');
@@ -101,11 +113,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [handleUnauthorized]);
     
     const fetchKnowledgeStatus = useCallback(async () => {
-        const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/status`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/status`);
             if (res.ok) {
                 const data = await res.json();
                 setKnowledgeStatus(data);
@@ -119,11 +128,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [fetchWithAuth]);
 
     const fetchAiConfig = useCallback(async () => {
-        const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`);
             
             if (!res.ok) {
                 const text = await res.text();
@@ -158,11 +164,8 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, []);
 
     const fetchPages = useCallback(async () => {
-        const token = localStorage.getItem('admin_token');
         try {
-            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages`);
             if (res.ok) {
                 const data = await res.json();
                 if (Array.isArray(data)) {
@@ -175,11 +178,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [fetchWithAuth]);
 
     const deletePage = useCallback(async (pageToDelete: string) => {
-        const token = localStorage.getItem('admin_token');
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages/${pageToDelete}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'DELETE'
             });
             if (res.ok) {
                 setModal({ show: true, title: 'Success', message: `Page '${pageToDelete}' deleted successfully.`, type: 'success' });
@@ -195,8 +196,6 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [fetchPages, fetchWithAuth]);
 
     const fetchFaqs = useCallback(async () => {
-        const token = localStorage.getItem('admin_token');
-        
         if (faqPage === 'all') {
             const pagesToFetch = availablePages.length > 0 
                 ? availablePages 
@@ -206,7 +205,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             for (const page of pagesToFetch) {
                 const url = `${API_BASE_URL}/api/v1/admin/faqs?page=${page}`;
                 try {
-                    const res = await fetchWithAuth(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                    const res = await fetchWithAuth(url);
                     if (res.ok) {
                         const data = await res.json();
                         if (Array.isArray(data)) {
@@ -215,7 +214,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                     } else {
                         // Fallback to path param if query param fails
                         const fbUrl = `${API_BASE_URL}/api/v1/admin/page/${page}/faqs`;
-                        const fbRes = await fetchWithAuth(fbUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                        const fbRes = await fetchWithAuth(fbUrl);
                         if (fbRes.ok) {
                             const data = await fbRes.json();
                             if (Array.isArray(data)) {
@@ -233,17 +232,13 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
         const url = `${API_BASE_URL}/api/v1/admin/faqs?page=${faqPage}`;
         try {
-            const res = await fetchWithAuth(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await fetchWithAuth(url);
             
             if (!res.ok) {
                 // If query param fails with 404/405, fallback to path param approach
                 if (res.status === 404 || res.status === 405) {
                     const fallbackUrl = `${API_BASE_URL}/api/v1/admin/page/${faqPage}/faqs`;
-                    const fallbackRes = await fetchWithAuth(fallbackUrl, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    const fallbackRes = await fetchWithAuth(fallbackUrl);
                     if (fallbackRes.ok) {
                         const data = await fallbackRes.json();
                         setFaqs(Array.isArray(data) ? data : []);
@@ -284,14 +279,12 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
 
         setFaqStatus('creating');
-        const token = localStorage.getItem('admin_token');
         const targetPage = faqPage === 'all' ? 'home' : faqPage; // Default to home if on 'all' view
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs`, {
                 method: 'POST',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(newFaq)
             });
@@ -312,12 +305,10 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     }, [faqPage, newFaq, fetchFaqs, fetchWithAuth]);
 
     const handleDeleteFaq = useCallback(async (id: string, pageContext?: string) => {
-        const token = localStorage.getItem('admin_token');
         const targetPage = pageContext || faqPage;
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'DELETE'
             });
             if (res.ok) {
                 fetchFaqs();
@@ -339,7 +330,6 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
 
         setFaqStatus('saving');
-        const token = localStorage.getItem('admin_token');
         // We might need to find the page for this FAQ if we're in 'all' view
         const currentFaq = faqs.find(f => f.id === editingFaqId);
         const targetPage = currentFaq?.page || faqPage;
@@ -348,8 +338,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${editingFaqId}`, {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(newFaq)
             });
@@ -372,11 +361,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
     const handleRegenerateApiKey = useCallback(async () => {
         setRegeneratingKey(true);
-        const token = localStorage.getItem('admin_token');
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/regenerate-api-key`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'POST'
             });
             const data = await res.json();
             if (res.ok && data.api_key) {
@@ -401,7 +388,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const handleSaveConfig = async () => {
         setStatus('saving');
         try {
-            const res = await fetch(`${API_BASE_URL}/api/config`, {
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
@@ -444,8 +431,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ai-config`, {
                 method: 'PUT',
                 headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload)
             });
@@ -467,7 +453,6 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         }
 
         setUploadStatus('uploading');
-        const token = localStorage.getItem('admin_token');
         const formData = new FormData();
         for (let i = 0; i < selectedFiles.length; i++) {
             formData.append('files', selectedFiles[i]);
@@ -476,9 +461,6 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/upload/batch`, {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}`
-                },
                 body: formData
             });
             if (res.ok) {
@@ -501,11 +483,9 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
     const handleDeletePdf = async (filename: string) => {
         if (!filename) return;
 
-        const token = localStorage.getItem('admin_token');
         try {
             const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/knowledge/pdf/${filename}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'DELETE'
             });
             if (res.ok) {
                 setModal({ show: true, title: 'Success', message: 'File deleted successfully', type: 'success' });
@@ -526,7 +506,7 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
         setStatus('building');
         setBuildLog('Starting build process...');
         try {
-            const res = await fetch(`${API_BASE_URL}/api/build`, { method: 'POST' });
+            const res = await fetchWithAuth(`${API_BASE_URL}/api/build`, { method: 'POST' });
             const data = await res.json();
             if (res.ok) {
                 setBuildLog(data.stdout || 'Build completed successfully.');
@@ -838,13 +818,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                     <div className="flex justify-end">
                                                         <button 
                                                             onClick={async () => {
-                                                                const token = localStorage.getItem('admin_token');
                                                                 try {
                                                                     const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`, {
                                                                         method: 'PUT',
                                                                         headers: { 
-                                                                            'Content-Type': 'application/json',
-                                                                            'Authorization': `Bearer ${token}` 
+                                                                            'Content-Type': 'application/json'
                                                                         },
                                                                         body: JSON.stringify({ 
                                                                             cors_origins: config['VITE_CORS_ORIGINS'] || '*' 
@@ -902,13 +880,11 @@ const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                                                     <div className="flex justify-end">
                                                         <button 
                                                             onClick={async () => {
-                                                                const token = localStorage.getItem('admin_token');
                                                                 try {
                                                                     const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/notification-email`, {
                                                                         method: 'PUT',
                                                                         headers: { 
-                                                                            'Content-Type': 'application/json',
-                                                                            'Authorization': `Bearer ${token}` 
+                                                                            'Content-Type': 'application/json'
                                                                         },
                                                                         body: JSON.stringify({ 
                                                                             notification_email: config['VITE_SUPPORT_EMAIL'] || '' 
