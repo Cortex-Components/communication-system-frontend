@@ -5,60 +5,67 @@ import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+
+  const isDashboard = mode === "dashboard";
+
   return {
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
-    server: {
-      host: "::",
-      port: parseInt(env.VITE_PORT || "8081"),
-      hmr: {
-        overlay: false,
-      },
-      watch: {
-        // Ignore .env changes so the dashboard server can write to .env without triggering a full page reload.
-        ignored: ["**/.env", "**/.env.*"],
-      },
-      proxy: {
-        "/api/config": {
-          target: "http://localhost:3001",
-          changeOrigin: true,
-          secure: false,
+    root: isDashboard ? "src/dashboard" : ".",
+    build: isDashboard
+      ? {
+          outDir: path.resolve(__dirname, "dist"),
+          emptyOutDir: true,
+        }
+      : {
+          lib: {
+            entry: path.resolve(__dirname, "src/main.tsx"),
+            name: "CortexChatWidget",
+            fileName: (format) => `cortex-chat-widget.${format}.js`,
+            formats: ["es", "umd"],
+          },
+          rollupOptions: {
+            output: {
+              inlineDynamicImports: true,
+            },
+          },
         },
-        "/api/build": {
-          target: "http://localhost:3001",
-          changeOrigin: true,
-          secure: false,
+    server: isDashboard
+      ? undefined
+      : {
+          host: "::",
+          port: parseInt(env.VITE_PORT || "8081"),
+          hmr: {
+            overlay: false,
+          },
+          watch: {
+            ignored: ["**/.env", "**/.env.*"],
+          },
+          proxy: {
+            "/api/config": {
+              target: "http://localhost:3001",
+              changeOrigin: true,
+              secure: false,
+            },
+            "/api/build": {
+              target: "http://localhost:3001",
+              changeOrigin: true,
+              secure: false,
+            },
+            "/api": {
+              target: "http://142.93.167.9:8010",
+              changeOrigin: true,
+              secure: false,
+            },
+            "/admin": {
+              target: "http://142.93.167.9:8010",
+              changeOrigin: true,
+              secure: false,
+            },
+          },
         },
-        "/api": {
-          target: "http://142.93.167.9:8010",
-          changeOrigin: true,
-          secure: false,
-        },
-        "/admin": {
-          target: "http://142.93.167.9:8010",
-          changeOrigin: true,
-          secure: false,
-        },
-      },
-    },
-
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
-    build: {
-      lib: {
-        entry: path.resolve(__dirname, "src/main.tsx"),
-        name: "CortexChatWidget",
-        fileName: (format) => `cortex-chat-widget.${format}.js`,
-        formats: ["es", "umd"],
-      },
-      rollupOptions: {
-        // We usually don't externalize React/ReactDOM for a standalone Widget to avoid version conflicts on host pages.
-        // But if you want a smaller file and the parent page has React, we can externalize them.
-        output: {
-          manualChunks: undefined,
-        },
-      },
-    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

@@ -40,7 +40,16 @@ export type TabId =
   | 'ai'
   | 'knowledge'
   | 'faqs'
-  | 'security';
+  | 'security'
+  | 'build';
 
 export type BuildStatus = 'idle' | 'saving' | 'building' | 'success' | 'error';
 export type AsyncStatus = 'idle' | 'saving' | 'creating' | 'uploading' | 'success' | 'error';
+
+export interface BuildSerializer {
+  tenant_id: string;
+  build_id: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  created_at: string;
+  is_deleted: boolean;
+}

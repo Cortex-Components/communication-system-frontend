@@ -24,17 +24,20 @@ export function useSecurity(
   const [newCorsOrigin, setNewCorsOrigin] = useState('');
   const [corsOriginError, setCorsOriginError] = useState('');
 
-  const fetchCorsOrigins = useCallback(async () => {
+  const fetchTenant = useCallback(async () => {
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant/cors`);
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant`);
       if (res.ok) {
         const data = await res.json();
         setCorsOrigins(Array.isArray(data.cors_origins) ? data.cors_origins : []);
+        if (data.notification_email) {
+          onConfigChange('support_email', data.notification_email);
+        }
       }
     } catch (err) {
-      console.error('Failed to fetch CORS origins', err);
+      console.error('Failed to fetch tenant', err);
     }
-  }, [fetchWithAuth]);
+  }, [fetchWithAuth, onConfigChange]);
 
   const regenerateApiKey = useCallback(async (): Promise<boolean> => {
     setRegeneratingKey(true);
@@ -87,7 +90,7 @@ export function useSecurity(
       if (res.ok) {
         const data = await res.json();
         if (data.notification_email) {
-          onConfigChange('VITE_SUPPORT_EMAIL', data.notification_email);
+          onConfigChange('support_email', data.notification_email);
         }
         return { ok: true, notificationEmail: data.notification_email };
       }
@@ -124,8 +127,8 @@ export function useSecurity(
   const clearAllCorsOrigins = useCallback(() => setCorsOrigins([]), []);
 
   useEffect(() => {
-    fetchCorsOrigins();
-  }, [fetchCorsOrigins]);
+    fetchTenant();
+  }, [fetchTenant]);
 
   return {
     tenantApiKey,

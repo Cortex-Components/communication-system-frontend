@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { API_BASE_URL } from '../../config';
 import { useAuthFetch } from './useAuthFetch';
-import type { BuildStatus } from '../types';
+import type { BuildStatus } from '../index';
 
 export function useConfig(onUnauthorized: () => void) {
   const fetchWithAuth = useAuthFetch(onUnauthorized);
@@ -12,7 +12,7 @@ export function useConfig(onUnauthorized: () => void) {
 
   const fetchConfig = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/config`);
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ui-config`);
       if (res.ok) setConfig(await res.json());
     } catch (err) {
       console.error('Failed to fetch config', err);
@@ -26,8 +26,8 @@ export function useConfig(onUnauthorized: () => void) {
   const saveConfig = useCallback(async (): Promise<boolean> => {
     setStatus('saving');
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/api/config`, {
-        method: 'POST',
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/tenant-ui-config`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
       });
@@ -44,7 +44,7 @@ export function useConfig(onUnauthorized: () => void) {
     setStatus('building');
     setBuildLog('Starting build process...');
     try {
-      const res = await fetchWithAuth(`${API_BASE_URL}/api/build`, { method: 'POST' });
+      const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/build`, { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
         setBuildLog(data.stdout || 'Build completed successfully.');

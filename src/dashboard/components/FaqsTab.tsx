@@ -41,7 +41,7 @@ export function FaqsTab({
   const pages =
     availablePages.length > 0
       ? availablePages
-      : (config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',');
+      : (config['available_pages'] || 'home,support').split(',');
 
   return (
     <div className="space-y-10">

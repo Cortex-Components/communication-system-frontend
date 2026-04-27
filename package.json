@@ -8,6 +8,8 @@
     "build": "vite build",
     "build:watch": "vite build --watch",
     "build:dev": "vite build --mode development",
+    "dashboard:build": "vite build --mode dashboard",
+    "dashboard:preview": "vite preview --mode dashboard",
     "lint": "eslint .",
     "preview": "vite preview",
     "dashboard:server": "node dashboard-server.js",
