@@ -20,7 +20,7 @@ import { FaqsTab } from './components/FaqsTab';
 import { SecurityTab } from './components/SecurityTab';
 import { BuildTab } from './components/BuildTab';
 
-import type { ModalState, TabId } from './types';
+import type { ModalState, TabId } from '.';
 
 // ---------------------------------------------------------------------------
 // Static config-field definitions (no logic, purely declarative)
@@ -130,7 +130,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   } = useSecurity(onLogout, handleInputChange);
 
   const {
-    builds, listStatus, actionStatus,
+    builds, currentBuild, currentScript, listStatus, actionStatus,
     listBuilds, getBuild, getBuildScript, createBuild, deleteBuild, pollBuildStatus,
   } = useBuilds(onLogout);
 
@@ -168,7 +168,10 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       assistant: { name: config['assistant_name'] || 'Assistant' },
       user:      { id: parseInt(config['default_user_id'] || '0'), name: config['default_user_name'] || 'Guest' },
     });
-    const tag = import.meta.env.widget_tag_name || 'cortex-chat-widget';
+    const tag =
+      config['widget_tag_name'] ||
+      import.meta.env.VITE_WIDGET_TAG_NAME ||
+      'cortex-chat-widget';
     return React.createElement(tag, { config: liveConfig });
   };
 
@@ -405,8 +408,8 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                 ) : activeTab === 'build' ? (
                   <BuildTab
                     builds={builds}
-                    currentBuild={null}
-                    currentScript={null}
+                    currentBuild={currentBuild}
+                    currentScript={currentScript}
                     listStatus={listStatus}
                     actionStatus={actionStatus}
                     onListBuilds={listBuilds}

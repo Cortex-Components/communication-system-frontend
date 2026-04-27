@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { API_BASE_URL } from '../../config';
 import { useAuthFetch } from './useAuthFetch';
-import type { BuildStatus } from '../types';
+import type { BuildStatus } from '../index';
 
 export function useConfig(onUnauthorized: () => void) {
   const fetchWithAuth = useAuthFetch(onUnauthorized);

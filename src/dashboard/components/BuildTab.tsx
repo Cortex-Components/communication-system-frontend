@@ -10,7 +10,7 @@ interface Props {
   actionStatus: string;
   onListBuilds: () => void;
   onGetBuild: (buildId: string) => void;
-  onGetBuildScript: (buildId: string) => void;
+  onGetBuildScript: (buildId: string) => Promise<string | null>;
   onCreateBuild: () => void;
   onDeleteBuild: (buildId: string) => Promise<boolean>;
   onPollBuildStatus: (buildId: string) => void;
