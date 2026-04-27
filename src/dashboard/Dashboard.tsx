@@ -10,6 +10,7 @@ import { useAiConfig } from './hooks/useAiConfig';
 import { useKnowledge } from './hooks/useKnowledge';
 import { useFaqs } from './hooks/useFaqs';
 import { useSecurity } from './hooks/useSecurity';
+import { useBuilds } from './hooks/useBuilds';
 import { usePages } from './hooks/usePages';
 
 import { AppModal } from './components/AppModal';
@@ -17,6 +18,7 @@ import { ConfigForm } from './components/ConfigForm';
 import { KnowledgeTab } from './components/KnowledgeTab';
 import { FaqsTab } from './components/FaqsTab';
 import { SecurityTab } from './components/SecurityTab';
+import { BuildTab } from './components/BuildTab';
 
 import type { ModalState, TabId } from './types';
 
@@ -76,6 +78,7 @@ const TABS: { id: TabId; icon: React.ElementType; label: string }[] = [
   { id: 'knowledge', icon: FileUp, label: 'Knowledge' },
   { id: 'faqs', icon: HelpCircle, label: 'FAQs Management' },
   { id: 'security', icon: Shield, label: 'Security & API' },
+  { id: 'build', icon: Hammer, label: 'Builds' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -126,6 +129,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     clearAllCorsOrigins, saveCorsOrigins, saveNotificationEmail, regenerateApiKey,
   } = useSecurity(onLogout, handleInputChange);
 
+  const {
+    builds, listStatus, actionStatus,
+    listBuilds, getBuild, getBuildScript, createBuild, deleteBuild, pollBuildStatus,
+  } = useBuilds(onLogout);
+
   // Save dispatcher
   const handleSave = useCallback(async () => {
     const ok = activeTab === 'ai' ? await saveAiConfig() : await saveConfig();
@@ -137,6 +145,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     activeTab === 'knowledge' ? 'Knowledge Assets' :
     activeTab === 'faqs'      ? 'FAQ Management' :
     activeTab === 'security'  ? 'Security & API Access' :
+    activeTab === 'build'     ? 'Build Management' :
     `${activeTab.charAt(0).toUpperCase()}${activeTab.slice(1)} Configuration`;
 
   const ActiveTabIcon = TABS.find((t) => t.id === activeTab)?.icon ?? Settings;
@@ -215,12 +224,11 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
             </button>
 
             <button
-              onClick={build}
-              disabled={status === 'building'}
+              onClick={() => setActiveTab('build')}
               className="flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-6 sm:py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all font-bold shadow-xl shadow-indigo-900/10 active:scale-95"
             >
               <div className="p-2 bg-white/20 rounded-lg">
-                {status === 'building' ? <RefreshCcw size={18} className="animate-spin" /> : <Hammer size={18} />}
+                <Hammer size={18} />
               </div>
               <span className="text-xs sm:text-sm">Deploy Widget</span>
             </button>
@@ -310,7 +318,8 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                     onCorsErrorChange={setCorsOriginError}
                     onAddCors={addCorsOrigin}
                     onRemoveCors={removeCorsOrigin}
-                    onClearAllCors={clearAllCorsOrigins}                    onSaveCors={async () => {
+                    onClearAllCors={clearAllCorsOrigins}
+                    onSaveCors={async () => {
                       const result = await saveCorsOrigins();
                       if (result.ok) showModal({ title: 'Success', message: 'CORS settings updated successfully!', type: 'success' });
                       else showModal({ title: 'Error', message: 'Failed to update CORS settings.', type: 'error' });
@@ -391,6 +400,21 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                         ? { title: 'Success', message: 'FAQ deleted successfully', type: 'success' }
                         : { title: 'Error', message: 'Failed to delete FAQ.', type: 'error' });
                     }}
+                    onShowModal={showModal}
+                  />
+                ) : activeTab === 'build' ? (
+                  <BuildTab
+                    builds={builds}
+                    currentBuild={null}
+                    currentScript={null}
+                    listStatus={listStatus}
+                    actionStatus={actionStatus}
+                    onListBuilds={listBuilds}
+                    onGetBuild={getBuild}
+                    onGetBuildScript={getBuildScript}
+                    onCreateBuild={createBuild}
+                    onDeleteBuild={deleteBuild}
+                    onPollBuildStatus={pollBuildStatus}
                     onShowModal={showModal}
                   />
                 ) : (
