@@ -21,7 +21,7 @@ export function useFaqs(
 
   const fetchFaqs = useCallback(async () => {
     const fetchPageFaqs = async (page: string): Promise<Faq[]> => {
-      const url = `${API_BASE_URL}/api/v1/admin/faqs?page=${page}`;
+      const url = `${API_BASE_URL}/api/v1/admin/page/${encodeURIComponent(page)}/faqs`;
       const res = await fetchWithAuth(url);
       if (res.ok) {
         const data = await res.json();
