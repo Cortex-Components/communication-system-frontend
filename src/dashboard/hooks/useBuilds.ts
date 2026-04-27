@@ -105,20 +105,20 @@ export function useBuilds(onUnauthorized: () => void) {
     }
   }, [fetchWithAuth, currentBuild]);
 
-  const pollBuildStatus = useCallback((buildId: string, intervalMs = 3000) => {
+  const pollBuildStatus = useCallback((buildId: string, intervalMs = 10000) => {
     if (pollingRef.current[buildId]) {
       clearInterval(pollingRef.current[buildId]);
     }
 
     pollingRef.current[buildId] = setInterval(async () => {
-      const build = await getBuild(buildId);
+      await listBuilds();
+      const build = builds.find((b) => b.build_id === buildId);
       if (build && build.status !== 'PENDING') {
         clearInterval(pollingRef.current[buildId]);
         delete pollingRef.current[buildId];
-        await listBuilds();
       }
     }, intervalMs);
-  }, [getBuild, listBuilds]);
+  }, [listBuilds, builds]);
 
   useEffect(() => {
     listBuilds();
