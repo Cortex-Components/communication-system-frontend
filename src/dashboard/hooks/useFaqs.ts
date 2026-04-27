@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { API_BASE_URL } from '../../config';
 import { useAuthFetch } from './useAuthFetch';
-import type { Faq, AsyncStatus } from '../types';
+import type { Faq, AsyncStatus } from '..';
 
 interface UseFaqsOptions {
   availablePages: string[];
@@ -42,7 +42,7 @@ export function useFaqs(
       const pages =
         availablePages.length > 0
           ? availablePages
-          : (config['VITE_AVAILABLE_PAGES'] || 'home,support').split(',').map((p) => p.trim());
+          : (config['available_pages'] || 'home,support').split(',').map((p) => p.trim());
 
       const results = await Promise.allSettled(pages.map(fetchPageFaqs));
       const allFaqs = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));

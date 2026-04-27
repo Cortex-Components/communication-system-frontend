@@ -28,30 +28,30 @@ const CONFIG_GROUPS: Record<
   { key?: string; id?: string; label: string; type: string; default?: string }[]
 > = {
   general: [
-    { key: 'VITE_APP_NAME', label: 'App Name', type: 'text' },
-    { key: 'VITE_SUPPORT_EMAIL', label: 'Support Email', type: 'email' },
-    { key: 'VITE_WIDGET_TAG_NAME', label: 'Widget Tag Name', type: 'text', default: 'cortex-chat-widget' },
-    { key: 'VITE_AVAILABLE_PAGES', label: 'Available Pages (comma separated)', type: 'text', default: 'home,support' },
-    { key: 'VITE_AVAILABLE_ROLES', label: 'Available Roles (comma separated)', type: 'text', default: 'dev,user' },
-    { key: 'VITE_DEFAULT_ROLE', label: 'Default Role', type: 'text', default: 'dev' },
-    { key: 'VITE_DEFAULT_PAGE', label: 'Default Page', type: 'text', default: 'home' },
-    { key: 'VITE_API_BASE_URL', label: 'API Base URL', type: 'text' },
+    { key: 'app_name', label: 'App Name', type: 'text' },
+    { key: 'support_email', label: 'Support Email', type: 'email' },
+    { key: 'widget_tag_name', label: 'Widget Tag Name', type: 'text', default: 'cortex-chat-widget' },
+    { key: 'available_pages', label: 'Available Pages (comma separated)', type: 'text', default: 'home,support' },
+    { key: 'available_roles', label: 'Available Roles (comma separated)', type: 'text', default: 'dev,user' },
+    { key: 'default_role', label: 'Default Role', type: 'text', default: 'dev' },
+    { key: 'default_page', label: 'Default Page', type: 'text', default: 'home' },
+    { key: 'api_base_url', label: 'API Base URL', type: 'text' },
   ],
   appearance: [
-    { key: 'VITE_COLOR_PRIMARY', label: 'Primary Color', type: 'color', default: '#2B3D55' },
-    { key: 'VITE_COLOR_SECONDARY', label: 'Secondary Color', type: 'color', default: '#F2DCB3' },
+    { key: 'color_primary', label: 'Primary Color', type: 'color', default: '#2B3D55' },
+    { key: 'color_secondary', label: 'Secondary Color', type: 'color', default: '#F2DCB3' },
   ],
   content: [
-    { key: 'VITE_WELCOME_TITLE', label: 'Welcome Title', type: 'text', default: 'Hi There!' },
-    { key: 'VITE_WELCOME_SUBTITLE', label: 'Welcome Subtitle', type: 'textarea', default: 'How can we help?' },
-    { key: 'VITE_WELCOME_PROMPT', label: 'Option Prompt', type: 'text', default: 'Please select an option below' },
-    { key: 'VITE_WELCOME_CHAT_BTN', label: 'Chat Button Text', type: 'text', default: 'Chat with us' },
-    { key: 'VITE_WELCOME_FOLLOW_BTN', label: 'Follow Button Text', type: 'text', default: 'Follow previous request' },
+    { key: 'welcome_title', label: 'Welcome Title', type: 'text', default: 'Hi There!' },
+    { key: 'welcome_subtitle', label: 'Welcome Subtitle', type: 'textarea', default: 'How can we help?' },
+    { key: 'option_prompt', label: 'Option Prompt', type: 'text', default: 'Please select an option below' },
+    { key: 'chat_button_text', label: 'Chat Button Text', type: 'text', default: 'Chat with us' },
+    { key: 'follow_button_text', label: 'Follow Button Text', type: 'text', default: 'Follow previous request' },
   ],
   persona: [
-    { key: 'VITE_ASSISTANT_NAME', label: 'Assistant Name', type: 'text' },
-    { key: 'VITE_DEFAULT_USER_NAME', label: 'Default User Name', type: 'text' },
-    { key: 'VITE_DEFAULT_USER_ID', label: 'Default User ID', type: 'number' },
+    { key: 'assistant_name', label: 'Assistant Name', type: 'text' },
+    { key: 'default_user_name', label: 'Default User Name', type: 'text' },
+    { key: 'default_user_id', label: 'Default User ID', type: 'number' },
   ],
   ai: [
     { key: 'business_name', label: 'Business Identity', type: 'text', default: 'Support AI' },
@@ -143,23 +143,23 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
 
   // Live preview (web component)
   const renderPreview = () => {
-    const primary   = config['VITE_COLOR_PRIMARY']   || '#2B3D55';
-    const secondary = config['VITE_COLOR_SECONDARY'] || '#F2DCB3';
+    const primary   = config['color_primary']   || '#2B3D55';
+    const secondary = config['color_secondary'] || '#F2DCB3';
     const liveConfig = JSON.stringify({
       colors:    { primary, secondary, primaryText: primary },
       content:   {
         welcome: {
-          title:        config['VITE_WELCOME_TITLE']      || 'Hi There!',
-          subtitle:     config['VITE_WELCOME_SUBTITLE']   || 'How can we help?',
-          optionPrompt: config['VITE_WELCOME_PROMPT']     || 'Please select an option below',
-          chatBtn:      config['VITE_WELCOME_CHAT_BTN']   || 'Chat with us',
-          followBtn:    config['VITE_WELCOME_FOLLOW_BTN'] || 'Follow previous request',
+          title:        config['welcome_title']      || 'Hi There!',
+          subtitle:     config['welcome_subtitle']   || 'How can we help?',
+          optionPrompt: config['option_prompt']     || 'Please select an option below',
+          chatBtn:      config['chat_button_text']   || 'Chat with us',
+          followBtn:    config['follow_button_text'] || 'Follow previous request',
         },
       },
-      assistant: { name: config['VITE_ASSISTANT_NAME'] || 'Assistant' },
-      user:      { id: parseInt(config['VITE_DEFAULT_USER_ID'] || '0'), name: config['VITE_DEFAULT_USER_NAME'] || 'Guest' },
+      assistant: { name: config['assistant_name'] || 'Assistant' },
+      user:      { id: parseInt(config['default_user_id'] || '0'), name: config['default_user_name'] || 'Guest' },
     });
-    const tag = import.meta.env.VITE_WIDGET_TAG_NAME || 'cortex-chat-widget';
+    const tag = import.meta.env.widget_tag_name || 'cortex-chat-widget';
     return React.createElement(tag, { config: liveConfig });
   };
 
@@ -305,7 +305,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                     corsOrigins={corsOrigins}
                     newCorsOrigin={newCorsOrigin}
                     corsOriginError={corsOriginError}
-                    notificationEmail={config['VITE_SUPPORT_EMAIL'] || ''}
+                    notificationEmail={config['support_email'] || ''}
                     onCorsInputChange={setNewCorsOrigin}
                     onCorsErrorChange={setCorsOriginError}
                     onAddCors={addCorsOrigin}
@@ -316,12 +316,12 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                       else showModal({ title: 'Error', message: 'Failed to update CORS settings.', type: 'error' });
                     }}
                     onSaveEmail={async () => {
-                      const ok = await saveNotificationEmail(config['VITE_SUPPORT_EMAIL'] || '');
+                      const ok = await saveNotificationEmail(config['support_email'] || '');
                       showModal(ok
                         ? { title: 'Success', message: 'Notification settings updated successfully!', type: 'success' }
                         : { title: 'Error', message: 'Failed to update notification settings.', type: 'error' });
                     }}
-                    onEmailChange={(v) => handleInputChange('VITE_SUPPORT_EMAIL', v)}
+                    onEmailChange={(v) => handleInputChange('support_email', v)}
                     onRegenerateKey={async () => {
                       const ok = await regenerateApiKey();
                       showModal(ok
@@ -431,7 +431,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                   {status === 'success' && scriptLink && (
                     <button
                       onClick={() => {
-                        const tag = config['VITE_WIDGET_TAG_NAME'] || 'cortex-chat-widget';
+                        const tag = config['widget_tag_name'] || 'cortex-chat-widget';
                         copyToClipboard(`<script src="${scriptLink}"></script>\n<${tag}></${tag}>`);
                       }}
                       className="w-full xl:w-auto px-6 py-3 bg-white text-emerald-700 rounded-xl border-2 border-emerald-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all flex items-center justify-center gap-3 font-black shadow-lg active:scale-95"

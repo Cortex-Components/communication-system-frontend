@@ -31,7 +31,7 @@ export function useSecurity(
         const data = await res.json();
         setCorsOrigins(Array.isArray(data.cors_origins) ? data.cors_origins : []);
         if (data.notification_email) {
-          onConfigChange('VITE_SUPPORT_EMAIL', data.notification_email);
+          onConfigChange('support_email', data.notification_email);
         }
       }
     } catch (err) {
@@ -90,7 +90,7 @@ export function useSecurity(
       if (res.ok) {
         const data = await res.json();
         if (data.notification_email) {
-          onConfigChange('VITE_SUPPORT_EMAIL', data.notification_email);
+          onConfigChange('support_email', data.notification_email);
         }
         return { ok: true, notificationEmail: data.notification_email };
       }
