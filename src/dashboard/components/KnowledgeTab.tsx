@@ -1,5 +1,5 @@
 import { FileUp, Link, RefreshCcw, CheckCircle, Trash2 } from 'lucide-react';
-import type { KnowledgeStatus, ModalState } from '../types';
+import type { KnowledgeStatus, ModalState } from '..';
 
 interface Props {
   knowledgeStatus: KnowledgeStatus | null;

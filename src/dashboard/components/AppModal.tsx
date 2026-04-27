@@ -1,5 +1,5 @@
 import { CheckCircle, AlertCircle, Trash2, Bot } from 'lucide-react';
-import type { ModalState } from '../types';
+import type { ModalState } from '..';
 
 interface Props {
   modal: ModalState;

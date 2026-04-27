@@ -2,7 +2,7 @@ import {
   Key, Shield, Mail, RefreshCcw, CheckCircle, AlertCircle,
   Copy, Trash2, Globe, PlusCircle,
 } from 'lucide-react';
-import type { ModalState } from '../types';
+import type { ModalState } from '..';
 
 interface Props {
   tenantApiKey: string;

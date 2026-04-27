@@ -1,5 +1,5 @@
 import { HelpCircle, Pencil, Trash2, RefreshCcw, CheckCircle } from 'lucide-react';
-import type { Faq, ModalState } from '../types';
+import type { Faq, ModalState } from '..';
 
 interface Props {
   faqs: Faq[];

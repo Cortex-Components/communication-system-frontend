@@ -29,7 +29,7 @@ export function useFaqs(
       }
       // Fallback to path-param endpoint
       const fbRes = await fetchWithAuth(
-        `${API_BASE_URL}/api/v1/admin/page/${page}/faqs`,
+        `${API_BASE_URL}/api/v1/admin/page/${encodeURIComponent(page)}/faqs`,
       );
       if (fbRes.ok) {
         const data = await fbRes.json();
@@ -67,7 +67,7 @@ export function useFaqs(
     setFaqStatus('creating');
     try {
       const res = await fetchWithAuth(
-        `${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs`,
+        `${API_BASE_URL}/api/v1/admin/page/${encodeURIComponent(targetPage)}/faqs`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,7 @@ export function useFaqs(
     setFaqStatus('saving');
     try {
       const res = await fetchWithAuth(
-        `${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${editingFaqId}`,
+        `${API_BASE_URL}/api/v1/admin/page/${encodeURIComponent(targetPage)}/faqs/${editingFaqId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -122,7 +122,7 @@ export function useFaqs(
       const targetPage = pageContext || faqPage;
       try {
         const res = await fetchWithAuth(
-          `${API_BASE_URL}/api/v1/admin/page/${targetPage}/faqs/${id}`,
+          `${API_BASE_URL}/api/v1/admin/page/${encodeURIComponent(targetPage)}/faqs/${id}`,
           { method: 'DELETE' },
         );
         if (res.ok) await fetchFaqs();

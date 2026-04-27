@@ -1,4 +1,4 @@
-import type { AiConfig } from '../types';
+import type { AiConfig } from '..';
 
 type FieldDef = {
   key?: string;

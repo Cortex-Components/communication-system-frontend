@@ -49,7 +49,7 @@ export function useKnowledge(onUnauthorized: () => void) {
     async (filename: string): Promise<boolean> => {
       try {
         const res = await fetchWithAuth(
-          `${API_BASE_URL}/api/v1/admin/knowledge/pdf/${filename}`,
+          `${API_BASE_URL}/api/v1/admin/knowledge/pdf/${encodeURIComponent(filename)}`,
           { method: 'DELETE' },
         );
         if (res.ok) await fetchKnowledgeStatus();
