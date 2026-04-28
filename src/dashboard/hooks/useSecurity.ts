@@ -7,7 +7,7 @@ function isValidCorsOrigin(url: string): { valid: boolean; error?: string } {
   if (!trimmed) return { valid: false, error: 'Origin cannot be empty' };
   if (trimmed === '*') return { valid: true };
   const urlRegex =
-    /^https?:\/\/(?:localhost(:\d+)?|[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*)(?:\/[^\s]*)?$/;
+    /^https?:\/\/(?:localhost(:\d+)?|[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)*)(:\d+)?(?:\/[^\s]*)?$/;
   return urlRegex.test(trimmed)
     ? { valid: true }
     : { valid: false, error: 'Invalid URL format. Must start with http:// or https://' };

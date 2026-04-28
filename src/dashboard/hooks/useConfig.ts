@@ -3,12 +3,22 @@ import { API_BASE_URL } from '../../config';
 import { useAuthFetch } from './useAuthFetch';
 import type { BuildStatus } from '../index';
 
+function isValidWidgetTagName(name: string): { valid: boolean; error?: string } {
+  const trimmed = name.trim();
+  if (!trimmed) return { valid: false, error: 'Widget tag name cannot be empty' };
+  if (!/^[a-z][a-z-]*$/.test(trimmed)) {
+    return { valid: false, error: 'Only lowercase letters (a-z) and hyphens are allowed' };
+  }
+  return { valid: true };
+}
+
 export function useConfig(onUnauthorized: () => void) {
   const fetchWithAuth = useAuthFetch(onUnauthorized);
   const [config, setConfig] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<BuildStatus>('idle');
   const [buildLog, setBuildLog] = useState('');
   const [scriptLink, setScriptLink] = useState('');
+  const [widgetTagNameError, setWidgetTagNameError] = useState('');
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -20,6 +30,10 @@ export function useConfig(onUnauthorized: () => void) {
   }, []);
 
   const handleInputChange = useCallback((key: string, value: string) => {
+    if (key === 'widget_tag_name') {
+      const validation = isValidWidgetTagName(value);
+      setWidgetTagNameError(validation.valid ? '' : (validation.error || 'Invalid'));
+    }
     setConfig((prev) => ({ ...prev, [key]: value }));
   }, []);
 
@@ -72,5 +86,7 @@ export function useConfig(onUnauthorized: () => void) {
     handleInputChange,
     saveConfig,
     build,
+    widgetTagNameError,
+    setWidgetTagNameError,
   };
 }

@@ -15,6 +15,7 @@ interface Props {
   aiConfig: AiConfig;
   onConfigChange: (key: string, value: string) => void;
   onAiChange: (key: keyof AiConfig, value: unknown) => void;
+  errors?: Record<string, string>;
 }
 
 export function ConfigForm({
@@ -24,6 +25,7 @@ export function ConfigForm({
   aiConfig,
   onConfigChange,
   onAiChange,
+  errors = {},
 }: Props) {
   const getValue = (key: string) =>
     isAiTab
@@ -50,6 +52,7 @@ export function ConfigForm({
 
         const key = field.key!;
         const value = getValue(key);
+        const error = errors[key];
 
         return (
           <div key={key ?? idx} className="space-y-3 group">
@@ -60,6 +63,7 @@ export function ConfigForm({
                     {field.label}
                   </label>
                   {isAiTab && <div className="w-1 h-1 rounded-full bg-indigo-400" />}
+                  {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
                 </div>
                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{key}</p>
               </div>
@@ -71,7 +75,7 @@ export function ConfigForm({
                   value={value}
                   onChange={(e) => handleChange(key, e.target.value)}
                   rows={isAiTab ? (key === 'brand_voice_rules' ? 8 : 4) : 3}
-                  className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all resize-none font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white"
+                  className={`w-full px-5 py-4 bg-slate-50/50 border rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all resize-none font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white ${error ? 'border-red-400' : 'border-slate-200'}`}
                   placeholder={field.default ?? `Specify ${field.label.toLowerCase()}...`}
                 />
               ) : field.type === 'color' ? (
@@ -88,7 +92,7 @@ export function ConfigForm({
                     type="text"
                     value={value || field.default || ''}
                     onChange={(e) => handleChange(key, e.target.value)}
-                    className="flex-1 px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-mono uppercase tracking-widest text-sm shadow-inner group-hover:bg-white"
+                    className={`flex-1 px-5 py-4 bg-slate-50/50 border rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-mono uppercase tracking-widest text-sm shadow-inner group-hover:bg-white ${error ? 'border-red-400' : 'border-slate-200'}`}
                     placeholder="#000000"
                   />
                 </div>
@@ -97,7 +101,7 @@ export function ConfigForm({
                   type={field.type}
                   value={value}
                   onChange={(e) => handleChange(key, e.target.value)}
-                  className="w-full px-5 py-4 bg-slate-50/50 border border-slate-200 rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white"
+                  className={`w-full px-5 py-4 bg-slate-50/50 border rounded-[1.5rem] focus:ring-2 focus:ring-slate-900/5 focus:border-slate-900 focus:outline-none transition-all font-medium text-slate-700 placeholder:text-slate-300 shadow-inner group-hover:bg-white ${error ? 'border-red-400' : 'border-slate-200'}`}
                   placeholder={field.default ?? `Specify ${field.label.toLowerCase()}...`}
                 />
               )}

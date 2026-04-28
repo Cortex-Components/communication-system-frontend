@@ -116,7 +116,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
     knowledgeStatus, selectedFiles, setSelectedFiles, uploadStatus, uploadPdfs, deletePdf,
   } = useKnowledge(onLogout);
 
-  const { availablePages, deletePage } = usePages(onLogout);
+  const { availablePages, deletePage, createPage } = usePages(onLogout);
 
   const {
     faqs, faqPage, setFaqPage, faqStatus, newFaq, setNewFaq,
@@ -404,6 +404,7 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
                         : { title: 'Error', message: 'Failed to delete FAQ.', type: 'error' });
                     }}
                     onShowModal={showModal}
+                    onCreatePage={createPage}
                   />
                 ) : activeTab === 'build' ? (
                   <BuildTab

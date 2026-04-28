@@ -36,9 +36,26 @@ export function usePages(onUnauthorized: () => void) {
     [fetchPages, fetchWithAuth],
   );
 
+  const createPage = useCallback(
+    async (page: string): Promise<boolean> => {
+      try {
+        const res = await fetchWithAuth(`${API_BASE_URL}/api/v1/admin/pages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page }),
+        });
+        if (res.ok) await fetchPages();
+        return res.ok;
+      } catch {
+        return false;
+      }
+    },
+    [fetchPages, fetchWithAuth],
+  );
+
   useEffect(() => {
     fetchPages();
   }, [fetchPages]);
 
-  return { availablePages, fetchPages, deletePage };
+  return { availablePages, fetchPages, deletePage, createPage };
 }

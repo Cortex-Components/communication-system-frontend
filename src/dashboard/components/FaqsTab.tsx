@@ -18,6 +18,7 @@ interface Props {
   onUpdate: () => void;
   onDelete: (id: string, page: string) => void;
   onShowModal: (modal: Omit<ModalState, 'show'>) => void;
+  onCreatePage?: (page: string) => void;
 }
 
 export function FaqsTab({
@@ -37,11 +38,13 @@ export function FaqsTab({
   onUpdate,
   onDelete,
   onShowModal,
+  onCreatePage,
 }: Props) {
   const pages =
     availablePages.length > 0
       ? availablePages
       : (config['available_pages'] || 'home,support').split(',');
+  const allPages = ['all', ...pages];
 
   return (
     <div className="space-y-10">
@@ -54,13 +57,24 @@ export function FaqsTab({
         <div className="flex items-center gap-2">
           <select
             value={faqPage}
-            onChange={(e) => onPageChange(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value === '__create__') {
+                const newPage = window.prompt('Enter new page name (lowercase letters and hyphens only):');
+                if (newPage && newPage.trim() && onCreatePage) {
+                  onCreatePage(newPage.trim().toLowerCase());
+                  onPageChange(newPage.trim().toLowerCase());
+                }
+              } else {
+                onPageChange(e.target.value);
+              }
+            }}
             className="w-full sm:w-64 px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none transition-all font-bold text-slate-700 shadow-sm"
           >
             <option value="all">ALL PAGES</option>
-            {pages.map((p) => (
+            {allPages.filter(p => p !== 'all').map((p) => (
               <option key={p.trim()} value={p.trim()}>{p.trim().toUpperCase()}</option>
             ))}
+            {onCreatePage && <option value="__create__">+ Create New Page</option>}
           </select>
           {faqPage !== 'all' && (
             <button
