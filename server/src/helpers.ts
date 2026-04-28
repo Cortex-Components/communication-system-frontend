@@ -13,11 +13,15 @@ export function writeStatus(buildDir: string, status: string, error?: string): v
   );
 }
 
-// Build env vars with WIDGET_ prefix for Vite
+// Build env vars with VITE_ prefix for Vite (Vite only includes VITE_* vars in bundle)
 export function buildEnv(widget: WidgetConfig): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
+  console.log(`[${new Date().toISOString()}] Building with env vars:`);
   for (const [key, value] of Object.entries(widget)) {
-    env['WIDGET_' + key] = value;
+    // Convert snake_case key to UPPER_SNAKE_CASE: api_base_url -> VITE_API_BASE_URL
+    const upperKey = key.toUpperCase();
+    env['VITE_' + upperKey] = value;
+    console.log(`  VITE_${upperKey}=${value}`);
   }
   return env;
 }
@@ -34,7 +38,7 @@ export function initBuildDir(tenantId: string, buildId: string): string {
 export function onBuildError(buildDir: string, tenantId: string, buildId: string): (err: Error) => void {
   return (err) => {
     writeStatus(buildDir, 'failed', err.message);
-    console.error('Build failed for ' + tenantId + '/' + buildId + ': ' + err.message);
+    console.error(`[${new Date().toISOString()}] Build FAILED for ${tenantId}/${buildId}: ${err.message}`);
   };
 }
 
@@ -47,7 +51,7 @@ export function onBuildSuccess(buildDir: string, tenantId: string, buildId: stri
       fs.cpSync(srcDist, path.join(buildDir, 'dist'), { recursive: true }); // copy widget bundle to build dir
     }
     writeStatus(buildDir, 'completed');
-    console.log('Build completed for ' + tenantId + '/' + buildId);
+    console.log(`[${new Date().toISOString()}] Build COMPLETED for ${tenantId}/${buildId}`);
   };
 }
 

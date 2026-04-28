@@ -8,8 +8,26 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BUILDS_DIR = path.join(process.cwd(), 'builds');
 
+// Request logging middleware
+app.use((req, _res, next) => {
+  const start = Date.now();
+  _res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${_res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Log incoming requests with body for debugging
+app.use((req, _res, next) => {
+  if (req.path === '/builds' && req.method === 'POST') {
+    console.log(`[${new Date().toISOString()}] POST /builds - incoming body:`, JSON.stringify(req.body, null, 2));
+  }
+  next();
+});
 
 fs.mkdirSync(BUILDS_DIR, { recursive: true });
 
@@ -27,10 +45,9 @@ app.get('/health', (_req, res) => {
 registerBuildRoutes(app);
 
 app.listen(PORT, () => {
-  console.log(`Build API running at http://localhost:${PORT}`);
-  console.log('POST   /builds                    - create build');
-  console.log('DELETE /builds/:tenant_id/:id     - delete build');
-  console.log('DELETE /builds?tenant_id=X        - delete all tenant builds');
+  console.log(`[${new Date().toISOString()}] Build API server started on port ${PORT}`);
+  console.log(`[${new Date().toISOString()}] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[${new Date().toISOString()}] Builds directory: ${BUILDS_DIR}`);
 });
 
 export default app;
