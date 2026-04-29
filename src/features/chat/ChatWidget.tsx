@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getChatId } from "@/utils/chatId";
 import ChatIcon from "../../assets/chatwidget.svg";
 import { ChatWelcome } from "./ChatWelcome";
 import { ChatConversation } from "./ChatConversation";
@@ -67,7 +68,7 @@ const ChatWidgetContent = () => {
 
     // Non-FAQ option: use public chat endpoint with a fixed session ID
     setIsFaqOnly(false);
-    setSelectedChatId(apiClient.publicChatId ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6");
+    setSelectedChatId(getChatId());
     setSelectedOption(option);
     setSelectedAnswer("");
     setView("chat");
@@ -80,7 +81,7 @@ const ChatWidgetContent = () => {
     setSelectedAnswer("");
     setIsFaqOnly(false);
     // Use a fixed chat ID from env and send via /public/chat/{chat_id}
-    setSelectedChatId(apiClient.publicChatId ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6");
+    setSelectedChatId(getChatId());
     setView("chat");
   };
 
