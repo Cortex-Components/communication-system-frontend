@@ -9,17 +9,7 @@ import { translations } from '@/i18n/translations';
 interface ChatWidgetLocalization {
   welcome?: Partial<ChatConfig['content']['welcome']>;
   followUp?: Partial<ChatConfig['content']['followUp']>;
-  changeRequests?: Partial<ChatConfig['content']['changeRequests']>;
-  details?: Partial<ChatConfig['content']['details']> & {
-    labels?: Partial<ChatConfig['content']['details']['labels']>;
-    sections?: Partial<ChatConfig['content']['details']['sections']>;
-    placeholders?: Partial<ChatConfig['content']['details']['placeholders']>;
-    upload?: Partial<ChatConfig['content']['details']['upload']>;
-    actions?: Partial<ChatConfig['content']['details']['actions']>;
-  };
-  userRequestChange?: Partial<ChatConfig['content']['userRequestChange']> & {
-    actions?: Partial<ChatConfig['content']['userRequestChange']['actions']>;
-  };
+
   history?: Partial<ChatConfig['content']['history']> & {
     actions?: Partial<ChatConfig['content']['history']['actions']>;
     messages?: Partial<ChatConfig['content']['history']['messages']>;
@@ -52,21 +42,7 @@ export const ChatProvider: React.FC<{
       ...baseContent,
       welcome: { ...localizedContent.welcome, ...baseContent.welcome },
       followUp: { ...localizedContent.followUp, ...baseContent.followUp },
-      changeRequests: { ...localizedContent.changeRequests, ...baseContent.changeRequests },
-      details: {
-        ...localizedContent.details,
-        ...baseContent.details,
-        labels: { ...localizedContent.details?.labels, ...baseContent.details.labels },
-        sections: { ...localizedContent.details?.sections, ...baseContent.details.sections },
-        placeholders: { ...localizedContent.details?.placeholders, ...baseContent.details.placeholders },
-        upload: { ...localizedContent.details?.upload, ...baseContent.details.upload },
-        actions: { ...localizedContent.details?.actions, ...baseContent.details.actions },
-      },
-      userRequestChange: {
-        ...localizedContent.userRequestChange,
-        ...baseContent.userRequestChange,
-        actions: { ...localizedContent.userRequestChange?.actions, ...baseContent.userRequestChange?.actions }
-      },
+
       history: {
         ...localizedContent.history,
         ...baseContent.history,
@@ -96,7 +72,7 @@ export const ChatProvider: React.FC<{
             ...config.content,
             welcome: { ...mergedContent.welcome, ...config.content?.welcome },
             followUp: { ...mergedContent.followUp, ...config.content?.followUp },
-            changeRequests: { ...mergedContent.changeRequests, ...config.content?.changeRequests },
+
           }
         : mergedContent,
     } as ChatConfig;
