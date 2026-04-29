@@ -73,11 +73,6 @@ export interface ChatConfig {
     headerHeight: string;
     chatHeaderHeight: string;
     quickReplyHeight: string;
-    detailsModal: {
-      width: string;
-      height: string;
-      borderRadius: string;
-    };
     gradients: {
       header: string;
       button: string;
@@ -98,62 +93,30 @@ export interface ChatConfig {
     followUp: {
       title: string;
     };
-    changeRequests: {
+    history: {
       title: string;
-      viewBtn: string;
-    };
-    details: {
-      title: string;
-      labels: Record<string, string>;
-      sections: Record<string, string>;
-      placeholders: {
-        changes: string;
-      };
-      upload: {
-        prompt: string;
-        limit: string;
-        btn: string;
-      };
+      recentChats: string;
+      noChats: string;
       actions: {
+        select: string;
+        selectAll: string;
+        deselectAll: string;
+        all: string;
+        undo: string;
         cancel: string;
-        submit: string;
+        delete: string;
+      };
+      messages: {
+        chatDeleted: string;
+        chatsDeleted: string;
+        deletedOne: string;
+        deletedMultiple: string;
+        allChatsDeleted: string;
       };
     };
-      userRequestChange: {
-        title: string;
-        subtitle: string;
-        placeholder: string;
-        actions: {
-          cancel: string;
-          continue: string;
-        };
-      };
-      history: {
-        title: string;
-        recentChats: string;
-        noChats: string;
-        actions: {
-          select: string;
-          selectAll: string;
-          deselectAll: string;
-          all: string;
-          undo: string;
-          cancel: string;
-          delete: string;
-        };
-        messages: {
-          chatDeleted: string;
-          chatsDeleted: string;
-          deletedOne: string;
-          deletedMultiple: string;
-          allChatsDeleted: string;
-        };
-      };
-    };
+  };
   roles: Record<string, string>;
-  rolePermissions: Record<string, {
-    requestChangeView: string;
-  }>;
+  rolePermissions: Record<string, object>;
   user: {
     id: number;
     name: string;
@@ -163,16 +126,6 @@ export interface ChatConfig {
     name: string;
   };
   followUpOptions: string[];
-  changeRequests: {
-    id: string;
-    userName: string;
-    module: string;
-    purchasedDate: string;
-    status: string;
-    statusColor: string;
-    requestedChanges: string;
-    attachments: { name: string; size: string; type: string }[];
-  }[];
   modificationTags: string[];
   statusFilters: {
     all: string;
@@ -251,11 +204,6 @@ export const APP_CONFIG: AppConfig = {
       headerHeight: "201px",
       chatHeaderHeight: "88px",
       quickReplyHeight: "58px",
-      detailsModal: {
-        width: "800px",
-        height: "733px",
-        borderRadius: "24px",
-      },
       gradients: {
         header: `linear-gradient(360deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} -68.13%, #858B89 15.94%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
         button: `linear-gradient(270deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} 0%, #858B89 50%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
@@ -293,48 +241,6 @@ export const APP_CONFIG: AppConfig = {
       followUp: {
         title: "Follow up on previous requests",
       },
-      changeRequests: {
-        title: "Follow up on change requests",
-        viewBtn: "View request",
-      },
-      details: {
-        title: "Change Request Details",
-        labels: {
-          client: "Client",
-          module: "Module",
-          purchased: "Purchased",
-          status: "Status",
-        },
-        sections: {
-          requestedChanges: "Requested Changes",
-          attachments: "Attachments",
-          reply: "Reply to the client",
-          upload: "Upload files",
-          modifyPrompt: "What would you like to modify?",
-          seeAll: "See all",
-        },
-        placeholders: {
-          changes: "Explain the changes you would like to make...",
-        },
-        upload: {
-          prompt: "Chose a file or drag & drop it here",
-          limit: "Maximum 500 MB file size",
-          btn: "Upload files",
-        },
-        actions: {
-          cancel: "Cancel",
-          submit: "Submit",
-        }
-      },
-      userRequestChange: {
-        title: "Request a change",
-        subtitle: "Enter the module link you want to request changes for.",
-        placeholder: "Paste the module URL here",
-        actions: {
-          cancel: "Cancel",
-          continue: "Continue",
-        },
-      },
       history: {
         title: "Conversation history",
         recentChats: "Recent Chats",
@@ -361,8 +267,8 @@ export const APP_CONFIG: AppConfig = {
     // Roles
     roles: (import.meta.env.VITE_AVAILABLE_ROLES ? import.meta.env.VITE_AVAILABLE_ROLES.split(",") : ["dev", "user"]).reduce((acc: Record<string, string>, role: string) => ({ ...acc, [role.trim()]: role.trim() }), {}),
     rolePermissions: {
-      dev: { requestChangeView: "change-requests" },
-      user: { requestChangeView: "user-request-change" },
+      dev: {},
+      user: {},
     },
 
     // Content & Persona
@@ -379,7 +285,6 @@ export const APP_CONFIG: AppConfig = {
     followUpOptions: import.meta.env.VITE_FOLLOW_UP_OPTIONS 
       ? import.meta.env.VITE_FOLLOW_UP_OPTIONS.split(",") 
       : [
-          "change request status",
           "bug report status",
           "support request",
           "Update a previous change request",
@@ -400,44 +305,6 @@ export const APP_CONFIG: AppConfig = {
       noResults: "No results for",
     },
 
-
-    changeRequests: [
-      {
-        id: "1",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "In progress",
-        statusColor: "#9C6F46",
-        requestedChanges: "The client requested additional reporting features in the inventory module...",
-        attachments: [
-          { name: "requirements.pdf", size: "20 MB", type: "pdf" },
-          { name: "screenshot.png", size: "20 MB", type: "png" },
-        ]
-      },
-      {
-        id: "2",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "Completed",
-        statusColor: "#00642F",
-        requestedChanges: "Implemented custom export to excel functionality.",
-        attachments: [
-          { name: "final_report.pdf", size: "15 MB", type: "pdf" },
-        ]
-      },
-      {
-        id: "3",
-        userName: "Ahmed Waleed",
-        module: "Inventory Management",
-        purchasedDate: "12 Mar 2025",
-        status: "In progress",
-        statusColor: "#9C6F46",
-        requestedChanges: "Add support for multiple warehouses.",
-        attachments: []
-      },
-    ],
 
     purchasedModules: [
       { id: "1", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
