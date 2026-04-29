@@ -88,7 +88,6 @@ export interface ChatConfig {
       subtitle: string;
       optionPrompt: string;
       chatBtn: string;
-      followBtn: string;
     };
     followUp: {
       title: string;
@@ -236,7 +235,6 @@ export const APP_CONFIG: AppConfig = {
         subtitle: import.meta.env.VITE_WELCOME_SUBTITLE || "How can we help?",
         optionPrompt: import.meta.env.VITE_WELCOME_PROMPT || "Please select an option below",
         chatBtn: import.meta.env.VITE_WELCOME_CHAT_BTN || "Chat with us",
-        followBtn: import.meta.env.VITE_WELCOME_FOLLOW_BTN || "Follow previous request",
       },
       followUp: {
         title: "Follow up on previous requests",
@@ -274,7 +272,7 @@ export const APP_CONFIG: AppConfig = {
     // Content & Persona
     user: {
       id: parseInt(import.meta.env.VITE_DEFAULT_USER_ID || "0"),
-      name: import.meta.env.VITE_DEFAULT_USER_NAME || "Ahmed",
+      name: "User",
     },
 
     

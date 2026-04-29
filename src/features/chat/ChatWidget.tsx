@@ -85,10 +85,7 @@ const ChatWidgetContent = () => {
     setView("chat");
   };
 
-  const handleFollowRequest = () => {
-    setFollowUpMode("options");
-    setView("follow-up");
-  };
+
 
   return (
     <div 
@@ -112,7 +109,7 @@ const ChatWidgetContent = () => {
               onClose={() => setView("closed")}
               onOptionSelect={handleOptionSelect}
               onChatWithUs={handleChatWithUs}
-              onFollowRequest={handleFollowRequest}
+
               onHistoryClick={() => {
                 setFollowUpMode("history");
                 setView("follow-up");
