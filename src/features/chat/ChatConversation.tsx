@@ -49,81 +49,84 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    // let intervalId: NodeJS.Timeout;
 
     if (chatId) {
-      const fetchMessages = async () => {
-        try {
-          const history = await chatService.getUserMessages(user.id, chatId);
-          if (history.length > 0) {
-            const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-            const mappedMessages: Message[] = sortedHistory.map((m) => ({
-              id: m.message_id,
-              text: m.message,
-              sender: m.sender === "user" ? "user" : "other",
-              name: m.sender === "user" ? user.name : assistant.name,
-            }));
-            
-            setMessages(prev => {
-              // Only update state if the backend has same or more messages.
-              // This prevents optimistic local messages from disappearing while the backend is still processing.
-              if (mappedMessages.length >= prev.length) {
-                return mappedMessages;
-              }
-              return prev;
-            });
-          }
-        } catch (error) {
-          console.error("Failed to fetch messages:", error);
-        }
-      };
+      // --- Authenticated polling (commented out: requires Bearer token) ---
+      // const fetchMessages = async () => {
+      //   try {
+      //     const history = await chatService.getUserMessages(user.id, chatId);
+      //     if (history.length > 0) {
+      //       const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      //       const mappedMessages: Message[] = sortedHistory.map((m) => ({
+      //         id: m.message_id,
+      //         text: m.message,
+      //         sender: m.sender === "user" ? "user" : "other",
+      //         name: m.sender === "user" ? user.name : assistant.name,
+      //       }));
+      //       setMessages(prev => {
+      //         if (mappedMessages.length >= prev.length) {
+      //           return mappedMessages;
+      //         }
+      //         return prev;
+      //       });
+      //     }
+      //   } catch (error) {
+      //     if (error instanceof Error && error.message.includes("Unauthorized")) {
+      //       if (intervalId) clearInterval(intervalId);
+      //     }
+      //     console.warn("Failed to fetch messages (expected for public chats):", error);
+      //   }
+      // };
 
       const initChat = async () => {
         setIsLoading(true);
         try {
-          try {
-            const chatDetails = await chatService.getChat(user.id, chatId);
-            setChatTitle(chatDetails.title);
-          } catch (e) {
-            console.warn("Could not fetch chat title:", e);
-          }
+          // --- Requires auth: commented out for public chat sessions ---
+          // try {
+          //   const chatDetails = await chatService.getChat(user.id, chatId);
+          //   setChatTitle(chatDetails.title);
+          // } catch (e) {
+          //   console.warn("Could not fetch chat title:", e);
+          // }
 
-          const history = await chatService.getUserMessages(user.id, chatId);
-          if (history.length === 0) {
-            if (initialMessage) {
-              await chatService.sendMessage(user.id, chatId, initialMessage, 'user');
-              if (initialAnswer) {
-                await chatService.sendMessage(user.id, chatId, initialAnswer, 'user');
-              }
-              await fetchMessages();
-            }
-          } else {
-            const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-            const mappedMessages: Message[] = sortedHistory.map((m) => ({
-              id: m.message_id,
-              text: m.message,
-              sender: m.sender === "user" ? "user" : "other",
-              name: m.sender === "user" ? user.name : assistant.name,
-            }));
-            setMessages(mappedMessages);
-          }
+          // --- Requires auth: commented out for public chat sessions ---
+          // const history = await chatService.getUserMessages(user.id, chatId);
+          // if (history.length === 0) {
+          //   if (initialMessage) {
+          //     await chatService.sendMessage(user.id, chatId, initialMessage, 'user');
+          //     if (initialAnswer) {
+          //       await chatService.sendMessage(user.id, chatId, initialAnswer, 'user');
+          //     }
+          //     await fetchMessages();
+          //   }
+          // } else {
+          //   const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          //   const mappedMessages: Message[] = sortedHistory.map((m) => ({
+          //     id: m.message_id,
+          //     text: m.message,
+          //     sender: m.sender === "user" ? "user" : "other",
+          //     name: m.sender === "user" ? user.name : assistant.name,
+          //   }));
+          //   setMessages(mappedMessages);
+          // }
         } catch (error) {
           console.error("Failed to sync chat state:", error);
         } finally {
           setIsLoading(false);
         }
       };
-      
+
       initChat();
 
-      // Poll every 3 seconds to get the chatbot's response
-      if (!isStatic) {
-        intervalId = setInterval(fetchMessages, 3000);
-      }
+      // --- Polling via authenticated endpoint (commented out for public sessions) ---
+      // if (!isStatic) {
+      //   intervalId = setInterval(fetchMessages, 3000);
+      // }
     }
-    
+
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      // if (intervalId) clearInterval(intervalId);
     };
   }, [chatId, user.id, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic]);
 
@@ -145,7 +148,21 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
 
     if (chatId) {
       try {
-        await chatService.sendMessage(user.id, chatId, text);
+        const response = await chatService.sendMessage(user.id, chatId, text);
+        
+        // For public chats, the response IS the chatbot's immediate reply.
+        // If we get a response with sender !== 'user', append it.
+        if (response && response.sender !== 'user') {
+          setMessages((prev) => [
+            ...prev,
+            { 
+              id: response.message_id || Date.now().toString() + "_ai", 
+              text: response.message, 
+              sender: "other",
+              name: assistant.name
+            },
+          ]);
+        }
       } catch (error) {
         console.error("Failed to send message to backend:", error);
       }

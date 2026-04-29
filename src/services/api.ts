@@ -15,6 +15,10 @@ export class ApiClient {
     return this.config.baseUrl;
   }
 
+  get publicChatId(): string | undefined {
+    return this.config.publicChatId;
+  }
+
   getEndpoint(page: string, endpoint: string, params: Record<string, string | number> = {}): string {
     const pageVal = this.config.pageEndpoints[page] || page;
     let resolvedEndpoint = this.config.endpoints[endpoint] || endpoint;
@@ -41,11 +45,21 @@ export class ApiClient {
     ).toString();
     
     const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+    const headers: Record<string, string> = {
+      'Accept-Language': this.language,
+    };
+
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (fullPath.includes('/public/')) {
+      headers['X-Tenant-ID'] = this.config.tenantId || '';
+    }
+
     const response = await fetch(url, {
-      headers: {
-        'Accept-Language': this.language,
-        'X-Extended-ID': import.meta.env.VITE_EXTENDED_ID || '',
-      }
+      headers
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);
@@ -54,16 +68,104 @@ export class ApiClient {
     return text ? JSON.parse(text) : {} as T;
   }
 
-  async post<T>(page: string, endpoint: string, data: unknown, params: Record<string, string | number> = {}): Promise<T> {
+  async post<T>(page: string, endpoint: string, data: unknown, params: Record<string, string | number> = {}, queryParams: Record<string, string | number> = {}): Promise<T> {
     const fullPath = this.getEndpoint(page, endpoint, params);
-    const response = await fetch(`${this.baseUrl}${fullPath}`, {
+
+    // Merge query params if provided
+    const query = new URLSearchParams(
+      Object.entries(queryParams).map(([k, v]) => [k, String(v)])
+    ).toString();
+
+    const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept-Language': this.language,
+    };
+
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (fullPath.includes('/public/')) {
+      headers['X-Tenant-ID'] = this.config.tenantId || '';
+    }
+
+    const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept-Language': this.language,
-        'X-Extended-ID': import.meta.env.VITE_EXTENDED_ID || '',
-      },
+      headers,
       body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
+  }
+
+  async put<T>(page: string, endpoint: string, data: unknown, params: Record<string, string | number> = {}, queryParams: Record<string, string | number> = {}): Promise<T> {
+    const fullPath = this.getEndpoint(page, endpoint, params);
+
+    const query = new URLSearchParams(
+      Object.entries(queryParams).map(([k, v]) => [k, String(v)])
+    ).toString();
+
+    const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept-Language': this.language,
+    };
+
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (fullPath.includes('/public/')) {
+      headers['X-Tenant-ID'] = this.config.tenantId || '';
+    }
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
+  }
+
+  async delete<T>(page: string, endpoint: string, data?: unknown, params: Record<string, string | number> = {}, queryParams: Record<string, string | number> = {}): Promise<T> {
+    const fullPath = this.getEndpoint(page, endpoint, params);
+
+    const query = new URLSearchParams(
+      Object.entries(queryParams).map(([k, v]) => [k, String(v)])
+    ).toString();
+
+    const url = `${this.baseUrl}${fullPath}${query ? `?${query}` : ''}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept-Language': this.language,
+    };
+
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (fullPath.includes('/public/')) {
+      headers['X-Tenant-ID'] = this.config.tenantId || '';
+    }
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers,
+      body: data ? JSON.stringify(data) : undefined,
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);
@@ -77,4 +179,3 @@ export class ApiClient {
 export const apiClient = new ApiClient();
 
 export default apiClient;
-

@@ -20,12 +20,12 @@ export const useApi = () => {
     userId,
     route: pathname,
     get: <T>(endpoint: string, params: Record<string, string | number> = {}) => 
-      apiClient.get<T>(currentPage, endpoint, { user_id: userId, ...params }, { lang: language }),
+      apiClient.get<T>(currentPage, endpoint, params, { lang: language }),
     post: <T>(endpoint: string, data: unknown, params: Record<string, string | number> = {}) => {
       const payload = typeof data === 'object' && data !== null 
         ? { ...data, route: pathname } 
         : data;
-      return apiClient.post<T>(currentPage, endpoint, payload, { user_id: userId, ...params });
+      return apiClient.post<T>(currentPage, endpoint, payload, params);
     },
   }), [currentPage, pathname, userId, apiClient, language]);
 };

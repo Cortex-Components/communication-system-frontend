@@ -4,6 +4,8 @@ export interface ApiConfig {
     [key: string]: string;
   };
   pageEndpoints: Record<string, string>;
+  tenantId?: string;
+  publicChatId?: string;
 }
 
 
@@ -203,20 +205,22 @@ const API_CONFIG: ApiConfig = {
         ? "/api/v1" 
         : (import.meta.env.VITE_API_BASE_URL || "http://142.93.167.9:8010/api/v1"),
     endpoints: {
-      faqs: "/page/{page}/faqs",
-      faq_details: "/page/{page}/faqs/{faq_id}",
-      user_chats: "/user_chats/{user_id}",
-      user_chat: "/user_chat/{user_id}/{chat_id}",
-      user_messages: "/user_message/{user_id}/{chat_id}",
-      create_message: "/user_message",
+      faqs: "/public/page/{page}/faqs",
+      faq_details: "/public/page/{page}/faqs/{faq_id}",
+      user_chats: "/user_chat/me",
+      user_chat: "/user_chat/{chat_id}",
+      user_messages: "/user_message/{chat_id}",
+      create_message: "/public/chat/{chat_id}",
       create_user_chat: "/user_chat",
+      delete_chat: "/user_chats",
       escalation: "/escalation",
       escalations: "/escalations",
-      escalation_details: "/escalation/{user_id}/{session_id}",
-      user_escalations: "/escalation/{user_id}",
-      delete_chat: "/user_chats/delete",
+      escalation_details: "/escalation_details/{session_id}",
+      user_escalations: "/user_escalations",
     },
-    pageEndpoints: (import.meta.env.VITE_AVAILABLE_PAGES ? import.meta.env.VITE_AVAILABLE_PAGES.split(",") : ["home", "support"]).reduce((acc: Record<string, string>, page: string) => ({ ...acc, [page.trim()]: page.trim() }), {})
+    pageEndpoints: (import.meta.env.VITE_AVAILABLE_PAGES ? import.meta.env.VITE_AVAILABLE_PAGES.split(",") : ["home", "support"]).reduce((acc: Record<string, string>, page: string) => ({ ...acc, [page.trim()]: page.trim() }), {}),
+    tenantId: import.meta.env.VITE_X_TENANT_ID,
+    publicChatId: import.meta.env.VITE_PUBLIC_CHAT_ID,
 };
 
 export const APP_CONFIG: AppConfig = {

@@ -78,15 +78,9 @@ const ChatWidgetContent = () => {
       return;
     }
 
-    // Non-FAQ option: create chat session (AI endpoint)
+    // Non-FAQ option: use public chat endpoint with a fixed session ID
     setIsFaqOnly(false);
-    try {
-      const newChat = await chatService.createChat(user.id, questionText);
-      setSelectedChatId(newChat.chat_id);
-    } catch (error) {
-      console.error("Failed to create chat for option:", error);
-    }
-
+    setSelectedChatId(apiClient.publicChatId ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6");
     setSelectedOption(option);
     setSelectedAnswer("");
     setView("chat");
@@ -97,16 +91,12 @@ const ChatWidgetContent = () => {
     setView(nextView as ChatView);
   };
 
-  const handleChatWithUs = async () => {
+  const handleChatWithUs = () => {
     setSelectedOption("");
     setSelectedAnswer("");
     setIsFaqOnly(false);
-    try {
-      const newChat = await chatService.createChat(user.id, config.content.welcome.chatBtn);
-      setSelectedChatId(newChat.chat_id);
-    } catch (error) {
-       console.error("Failed to create chat session:", error);
-    }
+    // Use a fixed chat ID from env and send via /public/chat/{chat_id}
+    setSelectedChatId(apiClient.publicChatId ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6");
     setView("chat");
   };
 

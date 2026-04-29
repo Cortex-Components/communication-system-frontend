@@ -51,8 +51,8 @@ export class ChatService {
    * Fetches all chats for a specific user
    * GET /api/v1/user_chats/{user_id}
    */
-  async getUserChats(userId: number): Promise<UserChat[]> {
-    return this.apiClient.get<UserChat[]>("home", "user_chats", { user_id: userId });
+  async getUserChats(_userId: number): Promise<UserChat[]> {
+    return this.apiClient.get<UserChat[]>("home", "user_chats");
   }
 
   /**
@@ -70,9 +70,8 @@ export class ChatService {
    * Fetches details for a specific chat
    * GET /api/v1/user_chat/{user_id}/{chat_id}
    */
-  async getChat(userId: number, chatId: string): Promise<UserChat> {
+  async getChat(_userId: number, chatId: string): Promise<UserChat> {
     return this.apiClient.get<UserChat>("home", "user_chat", { 
-      user_id: userId,
       chat_id: chatId 
     });
   }
@@ -81,9 +80,8 @@ export class ChatService {
    * Fetches messages for a specific user and chat from the backend
    * GET /api/v1/user_message/{user_id}/{chat_id}
    */
-  async getUserMessages(userId: number, chatId: string): Promise<UserMessage[]> {
+  async getUserMessages(_userId: number, chatId: string): Promise<UserMessage[]> {
     return this.apiClient.get<UserMessage[]>("home", "user_messages", { 
-      user_id: userId, 
       chat_id: chatId 
     });
   }
@@ -93,12 +91,9 @@ export class ChatService {
    * POST /api/v1/user_message
    */
   async sendMessage(userId: number, chatId: string, message: string, sender: 'user' | 'chabot' | 'support' = 'user'): Promise<UserMessage> {
-    return this.apiClient.post<UserMessage>("home", "create_message", { 
-      user_id: userId,
-      chat_id: chatId,
-      message: message,
-      sender: sender
-    });
+    // For public endpoints, message is passed in query. 
+    // We send an empty body to strictly match the documentation.
+    return this.apiClient.post<UserMessage>("home", "create_message", {}, { chat_id: chatId }, { message: message });
   }
 
   /**
@@ -121,9 +116,8 @@ export class ChatService {
    * Fetches details for a specific escalation
    * GET /api/v1/escalation/{user_id}/{session_id}
    */
-  async getEscalationDetails(userId: number, sessionId: string): Promise<EscalationResponse> {
+  async getEscalationDetails(_userId: number, sessionId: string): Promise<EscalationResponse> {
     return this.apiClient.get<EscalationResponse>("home", "escalation_details", {
-      user_id: userId,
       session_id: sessionId
     });
   }
@@ -132,21 +126,16 @@ export class ChatService {
    * Fetches all escalations for a specific user
    * GET /api/v1/escalation/{user_id}
    */
-  async getUserEscalations(userId: number): Promise<EscalationResponse[]> {
-    return this.apiClient.get<EscalationResponse[]>("home", "user_escalations", {
-      user_id: userId
-    });
+  async getUserEscalations(_userId: number): Promise<EscalationResponse[]> {
+    return this.apiClient.get<EscalationResponse[]>("home", "user_escalations");
   }
 
   /**
    * Deletes chat sessions for a user (supports bulk delete)
    * POST /api/v1/user/chats/delete
    */
-  async deleteChats(userId: number, chatIds: string[]): Promise<{ message: string }> {
-    return this.apiClient.post<{ message: string }>("home", "delete_chat", {
-      user_id: userId,
-      chat_ids: chatIds
-    });
+  async deleteChats(_userId: number, chatIds: string[]): Promise<{ message: string }> {
+    return this.apiClient.delete<{ message: string }>("home", "delete_chat", chatIds);
   }
 }
 

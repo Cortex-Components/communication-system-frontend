@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { APP_CONFIG } from '@/config/app-config';
 
 /**
  * Provides a fetch wrapper that automatically attaches the Bearer token
@@ -7,18 +8,24 @@ import { useCallback } from 'react';
 export function useAuthFetch(onUnauthorized: () => void) {
   const fetchWithAuth = useCallback(
     async (url: string, options: RequestInit = {}): Promise<Response> => {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
       if (!token) {
         onUnauthorized();
         throw new Error('Access denied: No authentication token found.');
       }
 
+      const headers: Record<string, string> = {
+        ...(options.headers as Record<string, string>),
+        Authorization: `Bearer ${token}`,
+      };
+
+      if (url.includes('/public/')) {
+        headers['X-Tenant-ID'] = APP_CONFIG.api.tenantId || '';
+      }
+
       const res = await fetch(url, {
         ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
       });
 
       if (res.status === 401) {
