@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   Settings, Palette, MessageSquare, Globe, Hammer, CheckCircle,
-  AlertCircle, Link, Copy, RefreshCcw, Eye, EyeOff, LogOut, Bot,
+  AlertCircle, Link, Copy, RefreshCcw, LogOut, Bot,
   FileUp, Layout, Shield, HelpCircle,
 } from 'lucide-react';
 
@@ -90,7 +90,6 @@ interface DashboardProps {
 
 const Dashboard = ({ onLogout }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState<TabId>('general');
-  const [showPreview, setShowPreview] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
   const [modal, setModal] = useState<ModalState>({ show: false, title: '', message: '', type: 'info' });
 
@@ -151,29 +150,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
   const ActiveTabIcon = TABS.find((t) => t.id === activeTab)?.icon ?? Settings;
 
   // Live preview (web component)
-  const renderPreview = () => {
-    const primary   = config['color_primary']   || '#2B3D55';
-    const secondary = config['color_secondary'] || '#F2DCB3';
-    const liveConfig = JSON.stringify({
-      colors:    { primary, secondary, primaryText: primary },
-      content:   {
-        welcome: {
-          title:        config['welcome_title']      || 'Hi There!',
-          subtitle:     config['welcome_subtitle']   || 'How can we help?',
-          optionPrompt: config['option_prompt']     || 'Please select an option below',
-          chatBtn:      config['chat_button_text']   || 'Chat with us',
-          followBtn:    config['follow_button_text'] || 'Follow previous request',
-        },
-      },
-      assistant: { name: config['assistant_name'] || 'Assistant' },
-      user:      { id: parseInt(config['default_user_id'] || '0'), name: config['default_user_name'] || 'Guest' },
-    });
-    const tag =
-      config['widget_tag_name'] ||
-      import.meta.env.VITE_WIDGET_TAG_NAME ||
-      'cortex-chat-widget';
-    return React.createElement(tag, { config: liveConfig });
-  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100">
@@ -212,19 +188,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
               <span className="text-xs sm:text-sm font-bold text-slate-600 group-hover:text-indigo-600">Save Changes</span>
             </button>
 
-            <button
-              onClick={() => setShowPreview((p) => !p)}
-              className={`flex flex-col sm:flex-row items-center justify-center gap-2 p-4 sm:px-5 sm:py-2.5 rounded-2xl transition-all shadow-sm active:scale-95 border ${
-                showPreview
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
-              }`}
-            >
-              <div className={`p-2 rounded-lg transition-colors ${showPreview ? 'bg-white/20' : 'bg-slate-50'}`}>
-                {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
-              </div>
-              <span className="text-xs sm:text-sm font-bold">Live Preview</span>
-            </button>
 
             <button
               onClick={() => setActiveTab('build')}
@@ -499,7 +462,6 @@ const Dashboard = ({ onLogout }: DashboardProps) => {
       </div>
 
       {/* Live preview web component */}
-      {showPreview && renderPreview()}
 
       {/* Saved toast */}
       {savedToast && (
