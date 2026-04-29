@@ -280,7 +280,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={(config.content.details.placeholders as {messagePlaceholder?: string}).messagePlaceholder || "Enter Your Message..."}
+              placeholder={(config.content.details?.placeholders as {messagePlaceholder?: string}).messagePlaceholder || "Enter Your Message..."}
               className="flex-1 bg-transparent text-[16px] text-cortex-black/70 placeholder:text-cortex-black/40 outline-none"
             />
             <button
