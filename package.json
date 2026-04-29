@@ -12,11 +12,14 @@
     "dashboard:preview": "vite preview --mode dashboard",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dashboard:server": "node dashboard-server.js",
+    "dashboard:server": "node server/dist/index.js",
+    "dashboard:build": "cd server && npx tsc",
+    "dashboard:dev": "npm run dashboard:build && npm run dashboard:server",
     "dashboard": "npm run dashboard:server"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.83.0",
+    "archiver": "^7.0.1",
     "lucide-react": "^0.462.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -24,6 +27,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@types/archiver": "^6.0.3",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",

@@ -6,65 +6,45 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
-  const isDashboard = mode === "dashboard";
-
   return {
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
-    root: isDashboard ? "src/dashboard" : ".",
-    build: isDashboard
-      ? {
-          outDir: path.resolve(__dirname, "dist"),
-          emptyOutDir: true,
-        }
-      : {
-          lib: {
-            entry: path.resolve(__dirname, "src/main.tsx"),
-            name: "CortexChatWidget",
-            fileName: (format) => `cortex-chat-widget.${format}.js`,
-            formats: ["es", "umd"],
-          },
-          rollupOptions: {
-            output: {
-              inlineDynamicImports: true,
-            },
-          },
+    build: {
+      lib: {
+        entry: path.resolve(__dirname, "src/main.tsx"),
+        name: "CortexChatWidget",
+        fileName: (format) => `cortex-chat-widget.${format}.js`,
+        formats: ["es", "umd"],
+      },
+      rollupOptions: {
+        output: {
+          inlineDynamicImports: true,
         },
-    server: isDashboard
-      ? undefined
-      : {
-          host: "::",
-          port: parseInt(env.VITE_PORT || "8081"),
-          hmr: {
-            overlay: false,
-          },
-          watch: {
-            ignored: ["**/.env", "**/.env.*"],
-          },
-          proxy: {
-            "/api/config": {
-              target: "http://localhost:3001",
-              changeOrigin: true,
-              secure: false,
-            },
-            "/api/build": {
-              target: "http://localhost:3001",
-              changeOrigin: true,
-              secure: false,
-            },
-            "/api": {
-              target: "http://142.93.167.9:8010",
-              changeOrigin: true,
-              secure: false,
-            },
-            "/admin": {
-              target: "http://142.93.167.9:8010",
-              changeOrigin: true,
-              secure: false,
-            },
-          },
+      },
+    },
+    server: {
+      host: "::",
+      port: parseInt(env.VITE_PORT || "8081"),
+      hmr: {
+        overlay: false,
+      },
+      watch: {
+        ignored: ["**/.env", "**/.env.*"],
+      },
+      proxy: {
+        "/api": {
+          target: "http://142.93.167.9:8010",
+          changeOrigin: true,
+          secure: false,
         },
+        "/admin": {
+          target: "http://142.93.167.9:8010",
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
       alias: {
