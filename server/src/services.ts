@@ -10,7 +10,7 @@ export function createBuild(tenantId: string, config: BuildConfig): string {
   const widget = validateWidgetConfig(config.widget) ?? (() => { throw new Error('config.widget is required with all expected string fields'); })();
 
   const buildDir = initBuildDir(tenantId, buildId);
-  const env = buildEnv(widget);
+  const env = buildEnv(widget, tenantId);
 
   exec('npm run build', { cwd: process.cwd(), env, timeout: 300000 }, (err) => {
     if (err) {

@@ -14,22 +14,23 @@ export function writeStatus(buildDir: string, status: string, error?: string): v
 }
 
 // Build env vars with VITE_ prefix for Vite (Vite only includes VITE_* vars in bundle)
-export function buildEnv(widget: WidgetConfig): NodeJS.ProcessEnv {
+export function buildEnv(widget: WidgetConfig, tenantId: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env };
   console.log(`[${new Date().toISOString()}] Building with env vars:`);
   for (const [key, value] of Object.entries(widget)) {
-    // Convert snake_case key to UPPER_SNAKE_CASE: api_base_url -> VITE_API_BASE_URL
     const upperKey = key.toUpperCase();
     env['VITE_' + upperKey] = value;
     console.log(`  VITE_${upperKey}=${value}`);
   }
+  env['VITE_X_TENANT_ID'] = tenantId;
+  console.log(`  VITE_X_TENANT_ID}=${tenantId}`);
   return env;
 }
 
 // Create build directory and init status
 export function initBuildDir(tenantId: string, buildId: string): string {
   const buildDir = path.join(BUILDS_DIR, tenantId, buildId);
-  fs.mkdirSync(buildDir, { recursive: true }); // create tenant/build_id/ dir tree
+  fs.mkdirSync(buildDir, { recursive: true });
   writeStatus(buildDir, 'pending');
   return buildDir;
 }
@@ -48,7 +49,7 @@ export function onBuildSuccess(buildDir: string, tenantId: string, buildId: stri
     const srcDist = path.join(PROJECT_ROOT, 'dist');
     if (fs.existsSync(srcDist)) {
       fs.mkdirSync(path.join(buildDir, 'dist'), { recursive: true });
-      fs.cpSync(srcDist, path.join(buildDir, 'dist'), { recursive: true }); // copy widget bundle to build dir
+      fs.cpSync(srcDist, path.join(buildDir, 'dist'), { recursive: true });
     }
     writeStatus(buildDir, 'completed');
     console.log(`[${new Date().toISOString()}] Build COMPLETED for ${tenantId}/${buildId}`);
