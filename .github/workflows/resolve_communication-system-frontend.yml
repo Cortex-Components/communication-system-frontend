@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: backend
+          name: app
 
       - name: Deploy backend
         uses: azure/webapps-deploy@v3
