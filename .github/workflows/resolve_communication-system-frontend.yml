@@ -25,7 +25,7 @@ jobs:
       - name: Prepare backend artifact
         run: |
           mkdir deploy
-          cp -r server/dist deploy/
+          cp -r dist deploy/
           cp server/package.json deploy/
           cp src deploy/
           cp package.json deploy/
