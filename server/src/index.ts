@@ -5,7 +5,7 @@ import path from 'path';
 import { registerBuildRoutes } from './api.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const BUILDS_DIR = path.join(process.cwd(), 'builds');
 
 // Request logging middleware
