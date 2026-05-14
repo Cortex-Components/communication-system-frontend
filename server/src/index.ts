@@ -6,7 +6,7 @@ import { registerBuildRoutes } from './api.js';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const BUILDS_DIR = path.join(process.cwd(), 'builds');
+const BUILDS_DIR = '/cortexhome/builds';
 
 // Request logging middleware
 app.use((req, _res, next) => {

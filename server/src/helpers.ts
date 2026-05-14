@@ -3,7 +3,7 @@ import path from 'path';
 import { WidgetConfig } from './types.js';
 
 const PROJECT_ROOT = process.cwd();
-const BUILDS_DIR = path.join(PROJECT_ROOT, 'builds');
+const BUILDS_DIR = '/cortexhome/builds';
 
 // Write status.json to build dir
 export function writeStatus(buildDir: string, status: string, error?: string): void {
