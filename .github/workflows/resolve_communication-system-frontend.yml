@@ -52,7 +52,7 @@ jobs:
           path: deploy
   deploy-backend:
     runs-on: ubuntu-latest
-    needs: build-backend
+    needs: build
 
     steps:
       - uses: actions/download-artifact@v4
