@@ -15,10 +15,6 @@ export class ApiClient {
     return this.config.baseUrl;
   }
 
-  get publicChatId(): string | undefined {
-    return this.config.publicChatId;
-  }
-
   getEndpoint(page: string, endpoint: string, params: Record<string, string | number> = {}): string {
     const pageVal = this.config.pageEndpoints[page] || page;
     let resolvedEndpoint = this.config.endpoints[endpoint] || endpoint;

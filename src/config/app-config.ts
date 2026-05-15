@@ -5,7 +5,6 @@ export interface ApiConfig {
   };
   pageEndpoints: Record<string, string>;
   tenantId?: string;
-  publicChatId?: string;
 }
 
 
@@ -23,12 +22,6 @@ export interface UserChat {
   title: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface PurchasedModule {
-  id: string;
-  name: string;
-  purchaseDate: string;
 }
 
 export interface UserMessage {
@@ -76,7 +69,6 @@ export interface ChatConfig {
     gradients: {
       header: string;
       button: string;
-      icon: string;
     };
   };
   colors: {
@@ -89,16 +81,13 @@ export interface ChatConfig {
       optionPrompt: string;
       chatBtn: string;
     };
-    followUp: {
-      title: string;
-    };
+    followUp: {};
     history: {
       title: string;
       recentChats: string;
       noChats: string;
       actions: {
         select: string;
-        selectAll: string;
         deselectAll: string;
         all: string;
         undo: string;
@@ -114,39 +103,21 @@ export interface ChatConfig {
       };
     };
   };
-  roles: Record<string, string>;
-  rolePermissions: Record<string, object>;
   user: {
-    id: number;
     name: string;
   };
 
   assistant: {
     name: string;
   };
-  followUpOptions: string[];
-  modificationTags: string[];
-  statusFilters: {
-    all: string;
-    noResults: string;
-  };
-  dataMapping: {
-    status: Record<string, string>;
-    modules: Record<string, string>;
-  };
   animations: {
     entryTransition: string;
   };
-  purchasedModules: PurchasedModule[];
   api: ApiConfig;
 }
 
 export interface AppConfig {
   api: ApiConfig;
-  general: {
-    appName: string;
-    supportEmail: string;
-  };
   chat: ChatConfig;
 }
 
@@ -172,17 +143,11 @@ const API_CONFIG: ApiConfig = {
     },
     pageEndpoints: (import.meta.env.VITE_AVAILABLE_PAGES ? import.meta.env.VITE_AVAILABLE_PAGES.split(",") : ["home", "support"]).reduce((acc: Record<string, string>, page: string) => ({ ...acc, [page.trim()]: page.trim() }), {}),
     tenantId: import.meta.env.VITE_X_TENANT_ID,
-    publicChatId: import.meta.env.VITE_PUBLIC_CHAT_ID,
 };
 
 export const APP_CONFIG: AppConfig = {
   api: API_CONFIG,
-  general: {
-    appName: import.meta.env.VITE_APP_NAME || "Communication System",
-    supportEmail: import.meta.env.VITE_SUPPORT_EMAIL || "support@gmail.com",
-  },
-  
-  // Chat configuration moved from feature specific folder to general config
+
   chat: {
     // Widget Dimensions & Positioning
     layout: {
@@ -206,7 +171,6 @@ export const APP_CONFIG: AppConfig = {
       gradients: {
         header: `linear-gradient(360deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} -68.13%, #858B89 15.94%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
         button: `linear-gradient(270deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} 0%, #858B89 50%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
-        icon: `linear-gradient(90deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DBD6BA"} 0%, #949791 15.87%, ${import.meta.env.VITE_COLOR_PRIMARY || "#3A495E"} 68.27%)`,
       }
     },
 
@@ -224,8 +188,6 @@ export const APP_CONFIG: AppConfig = {
       border: "#DEDEDE",
       bgGray: "#D9D9D9",
       wordsGray: "#949791",
-      successGreen: "#00642F",
-      progressGold: "#9C6F46",
     },
 
     // UI Strings & Content
@@ -245,7 +207,6 @@ export const APP_CONFIG: AppConfig = {
         noChats: "No recent chats found.",
         actions: {
           select: "Select",
-          selectAll: "Select All",
           deselectAll: "None",
           all: "All",
           undo: "UNDO",
@@ -262,59 +223,15 @@ export const APP_CONFIG: AppConfig = {
       },
     },
 
-    // Roles
-    roles: (import.meta.env.VITE_AVAILABLE_ROLES ? import.meta.env.VITE_AVAILABLE_ROLES.split(",") : ["dev", "user"]).reduce((acc: Record<string, string>, role: string) => ({ ...acc, [role.trim()]: role.trim() }), {}),
-    rolePermissions: {
-      dev: {},
-      user: {},
-    },
-
     // Content & Persona
     user: {
-      id: parseInt(import.meta.env.VITE_DEFAULT_USER_ID || "0"),
       name: "User",
     },
 
-    
     assistant: {
       name: import.meta.env.VITE_ASSISTANT_NAME || "Assistant",
     },
 
-    followUpOptions: import.meta.env.VITE_FOLLOW_UP_OPTIONS 
-      ? import.meta.env.VITE_FOLLOW_UP_OPTIONS.split(",") 
-      : [
-          "bug report status",
-          "support request",
-          "Update a previous change request",
-          "payment issue",
-          "complaint",
-        ],
-
-    modificationTags: import.meta.env.VITE_MODIFICATION_TAGS
-      ? import.meta.env.VITE_MODIFICATION_TAGS.split(",")
-      : [
-          "Frontend", "Backend Logic", "Database", "Integration", 
-          "API Modification", "Bug Fix", "Performance Improvement", 
-          "Security Update", "Add New Feature", "Custom Business Logic"
-        ],
-
-    statusFilters: {
-      all: "All",
-      noResults: "No results for",
-    },
-
-
-    purchasedModules: [
-      { id: "1", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "2", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "3", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-      { id: "4", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
-    ],
-
-    dataMapping: {
-      status: {},
-      modules: {}
-    },
     // Animation settings
     animations: {
       entryTransition: "animate-in slide-in-from-bottom-4 fade-in duration-300",

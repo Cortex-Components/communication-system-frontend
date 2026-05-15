@@ -23,7 +23,6 @@ export const translations: Translations = {
         noOptions: "No options available at the moment.",
       },
       followUp: {
-        title: "Follow up on previous requests",
         supportConversation: "Support Conversation",
         loadingMessages: "Loading messages...",
       },
@@ -48,44 +47,6 @@ export const translations: Translations = {
           allChatsDeleted: "Deleted all chats",
         },
       },
-      followUpOptions: [
-        "bug report status",
-        "support request",
-        "Update a previous change request",
-        "payment issue",
-        "complaint",
-      ],
-      modificationTags: [
-        "Frontend",
-        "Backend Logic",
-        "Database",
-        "Integration",
-        "API Modification",
-        "Bug Fix",
-        "Performance Improvement",
-        "Security Update",
-        "Add New Feature",
-        "Custom Business Logic",
-      ],
-      statusFilters: {
-        all: "All",
-        noResults: "No results for",
-      },
-      dataMapping: {
-        status: {
-          "pending": "Pending",
-          "fixed": "Fixed",
-          "closed": "Closed",
-          "In progress": "In progress",
-          "Completed": "Completed",
-          "Rejected": "Rejected",
-        },
-        modules: {
-          "Inventory Management": "Inventory Management",
-          "Dashboard": "Dashboard",
-          "E-commerce": "E-commerce",
-        }
-      }
     }
   },
   ar: {
@@ -106,7 +67,6 @@ export const translations: Translations = {
         noOptions: "لا توجد خيارات متاحة حاليا.",
       },
       followUp: {
-        title: "متابعة الطلبات السابقة",
         supportConversation: "محادثة الدعم",
         loadingMessages: "جاري تحميل الرسائل...",
       },
@@ -131,44 +91,6 @@ export const translations: Translations = {
           allChatsDeleted: "تم حذف جميع المحادثات",
         },
       },
-      followUpOptions: [
-        "حالة تقرير الأخطاء",
-        "طلب دعم",
-        "تحديث طلب تغيير سابق",
-        "مشكلة في الدفع",
-        "شكوى",
-      ],
-      modificationTags: [
-        "الواجهة الأمامية",
-        "منطق الخلفية",
-        "قاعدة البيانات",
-        "التكامل",
-        "تعديل الـ API",
-        "إصلاح خطأ",
-        "تحسين الأداء",
-        "تحديث أمني",
-        "إضافة ميزة جديدة",
-        "منطق عمل مخصص",
-      ],
-      statusFilters: {
-        all: "الكل",
-        noResults: "لا توجد نتائج لـ",
-      },
-      dataMapping: {
-        status: {
-          "pending": "قيد الانتظار",
-          "fixed": "تم الإصلاح",
-          "closed": "مغلق",
-          "In progress": "قيد التنفيذ",
-          "Completed": "مكتمل",
-          "Rejected": "مرفوض",
-        },
-        modules: {
-          "Inventory Management": "إدارة المخزون",
-          "Dashboard": "لوحة التحكم",
-          "E-commerce": "التجارة الإلكترونية",
-        }
-      }
     }
   }
 };

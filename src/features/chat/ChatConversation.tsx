@@ -128,7 +128,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
     return () => {
       // if (intervalId) clearInterval(intervalId);
     };
-  }, [chatId, user.id, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic]);
+  }, [chatId, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -148,7 +148,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
 
     if (chatId) {
       try {
-        const response = await chatService.sendMessage(user.id, chatId, text);
+        const response = await chatService.sendMessage(0, chatId, text);
         
         // For public chats, the response IS the chatbot's immediate reply.
         // If we get a response with sender !== 'user', append it.

@@ -14,13 +14,6 @@ interface ChatWidgetLocalization {
     actions?: Partial<ChatConfig['content']['history']['actions']>;
     messages?: Partial<ChatConfig['content']['history']['messages']>;
   };
-  followUpOptions?: string[];
-  modificationTags?: string[];
-  statusFilters?: ChatConfig['statusFilters'];
-  dataMapping?: {
-    status: Record<string, string>;
-    modules: Record<string, string>;
-  };
 }
 
 export const ChatProvider: React.FC<{
@@ -62,10 +55,6 @@ export const ChatProvider: React.FC<{
       colors: config?.colors
         ? { ...CHAT_CONFIG.colors, ...config.colors }
         : CHAT_CONFIG.colors,
-      followUpOptions: localizedContent.followUpOptions || CHAT_CONFIG.followUpOptions,
-      modificationTags: localizedContent.modificationTags || CHAT_CONFIG.modificationTags,
-      statusFilters: { ...CHAT_CONFIG.statusFilters, ...(localizedContent.statusFilters || {}) },
-      dataMapping: localizedContent.dataMapping || { status: {}, modules: {} },
       content: config?.content
         ? {
             ...mergedContent,
