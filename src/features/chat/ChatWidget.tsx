@@ -2,6 +2,7 @@ import { useState } from "react";
 import { getChatId } from "@/utils/chatId";
 import ChatIcon from "../../assets/chatwidget.svg";
 import { ChatWelcome } from "./ChatWelcome";
+import { ChatFollowUp } from "./ChatFollowUp";
 import { ChatConversation } from "./ChatConversation";
 import { Faq, ChatConfig } from "@/config/app-config";
 import { ChatProvider } from "./context/ChatProvider";
@@ -22,6 +23,7 @@ const ChatWidgetContent = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [selectedChatId, setSelectedChatId] = useState<string | undefined>();
   const [isFaqOnly, setIsFaqOnly] = useState<boolean>(false);
+  const [followUpMode, setFollowUpMode] = useState<"options" | "history">("options");
 
   const { layout, animations, user, style } = config;
   const { apiClient, currentPage } = useChat();
@@ -83,7 +85,10 @@ const ChatWidgetContent = () => {
     setView("chat");
   };
 
-
+  const handleFollowRequest = () => {
+    setFollowUpMode("options");
+    setView("follow-up");
+  };
 
   return (
     <div 
@@ -107,8 +112,21 @@ const ChatWidgetContent = () => {
               onClose={() => setView("closed")}
               onOptionSelect={handleOptionSelect}
               onChatWithUs={handleChatWithUs}
-
-              onHistoryClick={() => {}}
+              onFollowRequest={handleFollowRequest}
+              onHistoryClick={() => {
+                setFollowUpMode("history");
+                setView("follow-up");
+              }}
+            />
+          )}
+          {view === "follow-up" && (
+            <ChatFollowUp
+              onClose={() => setView("closed")}
+              onBack={() => setView("welcome")}
+              onOptionSelect={handleOptionSelect}
+              onChatSelect={handleChatSelect}
+              onChatWithUs={handleChatWithUs}
+              mode={followUpMode}
             />
           )}
           {view === "chat" && (

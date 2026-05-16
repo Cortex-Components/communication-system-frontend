@@ -10,10 +10,11 @@ interface ChatWelcomeProps {
   onClose: () => void;
   onOptionSelect: (faq: Faq | string) => void;
   onChatWithUs: () => void;
+  onFollowRequest: () => void;
   onHistoryClick: () => void;
 }
 
-export const ChatWelcome = ({ role, onClose, onOptionSelect, onChatWithUs, onHistoryClick }: ChatWelcomeProps) => {
+export const ChatWelcome = ({ role, onClose, onOptionSelect, onChatWithUs, onFollowRequest, onHistoryClick }: ChatWelcomeProps) => {
   const { config } = useChat();
   const { style, content } = config;
 
@@ -98,7 +99,12 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onChatWithUs, onHis
         </div>
 
         <div className="mt-auto pt-3 sm:pt-4 shrink-0 flex flex-col gap-2.5 sm:gap-3">
-
+          <button
+            onClick={onFollowRequest}
+            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"
+          >
+            {content.welcome.followBtn}
+          </button>
           <button
             onClick={onChatWithUs}
             className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"

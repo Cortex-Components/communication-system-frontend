@@ -48,8 +48,7 @@ export interface EscalationResponse {
 }
 
 export interface ChatConfig {
-
-
+  followUpOptions: string[];
   layout: {
     widgetWidth: string;
     widgetHeight: string;
@@ -80,8 +79,11 @@ export interface ChatConfig {
       subtitle: string;
       optionPrompt: string;
       chatBtn: string;
+      followBtn: string;
     };
-    followUp: {};
+    followUp: {
+      title: string;
+    };
     history: {
       title: string;
       recentChats: string;
@@ -104,6 +106,7 @@ export interface ChatConfig {
     };
   };
   user: {
+    id: number;
     name: string;
   };
 
@@ -197,6 +200,7 @@ export const APP_CONFIG: AppConfig = {
         subtitle: import.meta.env.VITE_WELCOME_SUBTITLE || "How can we help?",
         optionPrompt: import.meta.env.VITE_WELCOME_PROMPT || "Please select an option below",
         chatBtn: import.meta.env.VITE_WELCOME_CHAT_BTN || "Chat with us",
+        followBtn: import.meta.env.VITE_WELCOME_FOLLOW_BTN || "Follow previous request",
       },
       followUp: {
         title: "Follow up on previous requests",
@@ -224,7 +228,18 @@ export const APP_CONFIG: AppConfig = {
     },
 
     // Content & Persona
+    followUpOptions: import.meta.env.VITE_FOLLOW_UP_OPTIONS
+      ? import.meta.env.VITE_FOLLOW_UP_OPTIONS.split(",")
+      : [
+          "bug report status",
+          "support request",
+          "Update a previous change request",
+          "payment issue",
+          "complaint",
+        ],
+
     user: {
+      id: parseInt(import.meta.env.VITE_DEFAULT_USER_ID || "0"),
       name: "User",
     },
 
