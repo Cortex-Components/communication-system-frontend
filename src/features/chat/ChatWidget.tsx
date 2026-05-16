@@ -3,12 +3,16 @@ import { getChatId } from "@/utils/chatId";
 import ChatIcon from "../../assets/chatwidget.svg";
 import { ChatWelcome } from "./ChatWelcome";
 import { ChatFollowUp } from "./ChatFollowUp";
+import { ChangeRequestList } from "./ChangeRequestList";
+import { ChangeRequestDetails } from "./ChangeRequestDetails";
+import { CreateChangeRequest } from "./CreateChangeRequest";
+import { RequestChangeModal } from "./RequestChangeModal";
 import { ChatConversation } from "./ChatConversation";
 import { Faq, ChatConfig } from "@/config/app-config";
 import { ChatProvider } from "./context/ChatProvider";
 import { useChat } from "./context/ChatContext";
 
-export type ChatView = "closed" | "welcome" | "follow-up" | "chat";
+export type ChatView = "closed" | "welcome" | "follow-up" | "change-requests" | "change-request-details" | "user-request-change" | "create-change-request" | "chat";
 
 interface ChatWidgetProps {
   role?: string;
@@ -22,6 +26,7 @@ const ChatWidgetContent = () => {
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [selectedChatId, setSelectedChatId] = useState<string | undefined>();
+  const [selectedRequestId, setSelectedRequestId] = useState<string>("");
   const [isFaqOnly, setIsFaqOnly] = useState<boolean>(false);
   const [followUpMode, setFollowUpMode] = useState<"options" | "history">("options");
 
@@ -39,6 +44,12 @@ const ChatWidgetContent = () => {
 
   const handleOptionSelect = async (option: string | Faq) => {
     const questionText = typeof option === "string" ? option : option.question;
+    const lowerText = questionText.toLowerCase();
+    const isStatusCheck = lowerText.includes("change request status");
+    if (isStatusCheck) {
+      setView("change-requests");
+      return;
+    }
     if (typeof option !== "string") {
       // Use existing data from the FAQ object if available to avoid redundant or failing fetch calls.
       if (option.answer) {
@@ -85,6 +96,11 @@ const ChatWidgetContent = () => {
     setView("chat");
   };
 
+  const handleRequestChange = () => {
+    const nextView = config.rolePermissions[role]?.requestChangeView || "user-request-change";
+    setView(nextView as ChatView);
+  };
+
   const handleFollowRequest = () => {
     setFollowUpMode("options");
     setView("follow-up");
@@ -111,6 +127,7 @@ const ChatWidgetContent = () => {
               role={role}
               onClose={() => setView("closed")}
               onOptionSelect={handleOptionSelect}
+              onRequestChange={handleRequestChange}
               onChatWithUs={handleChatWithUs}
               onFollowRequest={handleFollowRequest}
               onHistoryClick={() => {
@@ -127,6 +144,53 @@ const ChatWidgetContent = () => {
               onChatSelect={handleChatSelect}
               onChatWithUs={handleChatWithUs}
               mode={followUpMode}
+            />
+          )}
+          {view === "change-requests" && (
+            <ChangeRequestList
+              onClose={() => setView("closed")}
+              onBack={() => setView("follow-up")}
+              onViewRequest={(id) => {
+                setSelectedRequestId(id);
+                setView("change-request-details");
+              }}
+              onChatWithUs={handleChatWithUs}
+            />
+          )}
+          {view === "change-request-details" && (
+            <ChangeRequestDetails
+              requestId={selectedRequestId}
+              onClose={() => setView("closed")}
+              onCancel={() => {
+                const backView = config.rolePermissions[role]?.requestChangeView || "user-request-change";
+                setView(backView as ChatView);
+              }}
+              onSubmit={() => {
+                setSelectedOption(`I'm submitting changes for request #${selectedRequestId}`);
+                setView("chat");
+              }}
+            />
+          )}
+          {view === "user-request-change" && (
+            <RequestChangeModal
+              onClose={() => setView("closed")}
+              onCancel={() => setView("welcome")}
+              onSubmit={(moduleId) => {
+                console.log("Selected module:", moduleId);
+                setView("create-change-request");
+              }}
+              onChatWithUs={handleChatWithUs}
+            />
+          )}
+          {view === "create-change-request" && (
+            <CreateChangeRequest
+              onClose={() => setView("closed")}
+              onCancel={() => setView("welcome")}
+              onSubmit={(data) => {
+                setSelectedOption(`I'd like to request changes: ${data.tags.join(", ")}`);
+                setSelectedAnswer("Request received! Our team will review your details and get back to you shortly.");
+                setView("chat");
+              }}
             />
           )}
           {view === "chat" && (

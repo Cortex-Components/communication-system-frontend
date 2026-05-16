@@ -9,12 +9,13 @@ interface ChatWelcomeProps {
   role: string;
   onClose: () => void;
   onOptionSelect: (faq: Faq | string) => void;
+  onRequestChange: () => void;
   onChatWithUs: () => void;
   onFollowRequest: () => void;
   onHistoryClick: () => void;
 }
 
-export const ChatWelcome = ({ role, onClose, onOptionSelect, onChatWithUs, onFollowRequest, onHistoryClick }: ChatWelcomeProps) => {
+export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, onChatWithUs, onFollowRequest, onHistoryClick }: ChatWelcomeProps) => {
   const { config } = useChat();
   const { style, content } = config;
 
@@ -73,6 +74,12 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onChatWithUs, onFol
           <p className="text-[14px] sm:text-[16px] text-muted-foreground truncate flex-1">
             {content.welcome.optionPrompt}
           </p>
+          <button
+            onClick={onRequestChange}
+            className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[11px] sm:text-[12px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
+          >
+            {(content.welcome as {requestBtn?: string}).requestBtn || "Request a change"}
+          </button>
         </div>
         
         <div 

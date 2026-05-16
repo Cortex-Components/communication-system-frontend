@@ -47,6 +47,12 @@ export interface EscalationResponse {
   priority: "high" | "normal" | "low";
 }
 
+export interface PurchasedModule {
+  id: string;
+  name: string;
+  purchaseDate: string;
+}
+
 export interface ChatConfig {
   followUpOptions: string[];
   layout: {
@@ -65,6 +71,11 @@ export interface ChatConfig {
     headerHeight: string;
     chatHeaderHeight: string;
     quickReplyHeight: string;
+    detailsModal: {
+      width: string;
+      height: string;
+      borderRadius: string;
+    };
     gradients: {
       header: string;
       button: string;
@@ -73,6 +84,9 @@ export interface ChatConfig {
   colors: {
     [key: string]: string;
   };
+  rolePermissions: Record<string, {
+    requestChangeView: string;
+  }>;
   content: {
     welcome: {
       title: string;
@@ -80,9 +94,52 @@ export interface ChatConfig {
       optionPrompt: string;
       chatBtn: string;
       followBtn: string;
+      requestBtn: string;
     };
     followUp: {
       title: string;
+    };
+    changeRequests: {
+      title: string;
+      viewBtn: string;
+    };
+    details: {
+      title: string;
+      labels: {
+        client: string;
+        module: string;
+        purchased: string;
+        status: string;
+      };
+      sections: {
+        requestedChanges: string;
+        attachments: string;
+        reply: string;
+        upload: string;
+        modifyPrompt: string;
+        seeAll: string;
+      };
+      placeholders: {
+        changes: string;
+      };
+      upload: {
+        prompt: string;
+        limit: string;
+        btn: string;
+      };
+      actions: {
+        cancel: string;
+        submit: string;
+      };
+    };
+    userRequestChange: {
+      title: string;
+      subtitle: string;
+      placeholder: string;
+      actions: {
+        cancel: string;
+        continue: string;
+      };
     };
     history: {
       title: string;
@@ -113,6 +170,26 @@ export interface ChatConfig {
   assistant: {
     name: string;
   };
+  modificationTags: string[];
+  statusFilters: {
+    all: string;
+    noResults: string;
+  };
+  dataMapping: {
+    status: Record<string, string>;
+    modules: Record<string, string>;
+  };
+  changeRequests: {
+    id: string;
+    userName: string;
+    module: string;
+    purchasedDate: string;
+    status: string;
+    statusColor: string;
+    requestedChanges: string;
+    attachments: { name: string; size: string; type: string }[];
+  }[];
+  purchasedModules: PurchasedModule[];
   animations: {
     entryTransition: string;
   };
@@ -171,6 +248,11 @@ export const APP_CONFIG: AppConfig = {
       headerHeight: "201px",
       chatHeaderHeight: "88px",
       quickReplyHeight: "58px",
+      detailsModal: {
+        width: "800px",
+        height: "733px",
+        borderRadius: "24px",
+      },
       gradients: {
         header: `linear-gradient(360deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} -68.13%, #858B89 15.94%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
         button: `linear-gradient(270deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} 0%, #858B89 50%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
@@ -191,6 +273,8 @@ export const APP_CONFIG: AppConfig = {
       border: "#DEDEDE",
       bgGray: "#D9D9D9",
       wordsGray: "#949791",
+      successGreen: "#00642F",
+      progressGold: "#9C6F46",
     },
 
     // UI Strings & Content
@@ -201,9 +285,52 @@ export const APP_CONFIG: AppConfig = {
         optionPrompt: import.meta.env.VITE_WELCOME_PROMPT || "Please select an option below",
         chatBtn: import.meta.env.VITE_WELCOME_CHAT_BTN || "Chat with us",
         followBtn: import.meta.env.VITE_WELCOME_FOLLOW_BTN || "Follow previous request",
+        requestBtn: import.meta.env.VITE_WELCOME_REQUEST_BTN || "Request a change",
       },
       followUp: {
         title: "Follow up on previous requests",
+      },
+      changeRequests: {
+        title: "Follow up on change requests",
+        viewBtn: "View request",
+      },
+      details: {
+        title: "Change Request Details",
+        labels: {
+          client: "Client",
+          module: "Module",
+          purchased: "Purchased",
+          status: "Status",
+        },
+        sections: {
+          requestedChanges: "Requested Changes",
+          attachments: "Attachments",
+          reply: "Reply to the client",
+          upload: "Upload files",
+          modifyPrompt: "What would you like to modify?",
+          seeAll: "See all",
+        },
+        placeholders: {
+          changes: "Explain the changes you would like to make...",
+        },
+        upload: {
+          prompt: "Chose a file or drag & drop it here",
+          limit: "Maximum 500 MB file size",
+          btn: "Upload files",
+        },
+        actions: {
+          cancel: "Cancel",
+          submit: "Submit",
+        },
+      },
+      userRequestChange: {
+        title: "Request a change",
+        subtitle: "Enter the module link you want to request changes for.",
+        placeholder: "Paste the module URL here",
+        actions: {
+          cancel: "Cancel",
+          continue: "Continue",
+        },
       },
       history: {
         title: "Conversation history",
@@ -237,6 +364,74 @@ export const APP_CONFIG: AppConfig = {
           "payment issue",
           "complaint",
         ],
+
+    modificationTags: import.meta.env.VITE_MODIFICATION_TAGS
+      ? import.meta.env.VITE_MODIFICATION_TAGS.split(",")
+      : [
+          "Frontend", "Backend Logic", "Database", "Integration",
+          "API Modification", "Bug Fix", "Performance Improvement",
+          "Security Update", "Add New Feature", "Custom Business Logic"
+        ],
+
+    statusFilters: {
+      all: "All",
+      noResults: "No results for",
+    },
+
+    dataMapping: {
+      status: {},
+      modules: {}
+    },
+
+    rolePermissions: {
+      dev: { requestChangeView: "change-requests" },
+      user: { requestChangeView: "user-request-change" },
+    },
+
+    changeRequests: [
+      {
+        id: "1",
+        userName: "Ahmed Waleed",
+        module: "Inventory Management",
+        purchasedDate: "12 Mar 2025",
+        status: "In progress",
+        statusColor: "#9C6F46",
+        requestedChanges: "The client requested additional reporting features in the inventory module...",
+        attachments: [
+          { name: "requirements.pdf", size: "20 MB", type: "pdf" },
+          { name: "screenshot.png", size: "20 MB", type: "png" },
+        ]
+      },
+      {
+        id: "2",
+        userName: "Ahmed Waleed",
+        module: "Inventory Management",
+        purchasedDate: "12 Mar 2025",
+        status: "Completed",
+        statusColor: "#00642F",
+        requestedChanges: "Implemented custom export to excel functionality.",
+        attachments: [
+          { name: "final_report.pdf", size: "15 MB", type: "pdf" },
+        ]
+      },
+      {
+        id: "3",
+        userName: "Ahmed Waleed",
+        module: "Inventory Management",
+        purchasedDate: "12 Mar 2025",
+        status: "In progress",
+        statusColor: "#9C6F46",
+        requestedChanges: "Add support for multiple warehouses.",
+        attachments: []
+      },
+    ],
+
+    purchasedModules: [
+      { id: "1", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
+      { id: "2", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
+      { id: "3", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
+      { id: "4", name: "Inventory Management", purchaseDate: "12 Mar 2025" },
+    ],
 
     user: {
       id: parseInt(import.meta.env.VITE_DEFAULT_USER_ID || "0"),
