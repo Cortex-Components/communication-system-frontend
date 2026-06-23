@@ -15,6 +15,10 @@ export class ApiClient {
     return this.config.baseUrl;
   }
 
+  hasToken(): boolean {
+    return !!localStorage.getItem(this.config.tokenKey || 'bottoken');
+  }
+
   getEndpoint(page: string, endpoint: string, params: Record<string, string | number> = {}): string {
     const pageVal = this.config.pageEndpoints[page] || page;
     let resolvedEndpoint = this.config.endpoints[endpoint] || endpoint;
@@ -45,7 +49,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = localStorage.getItem(this.config.tokenKey || 'bottoken');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -79,7 +83,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = localStorage.getItem(this.config.tokenKey || 'bottoken');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -114,7 +118,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = localStorage.getItem(this.config.tokenKey || 'bottoken');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -149,7 +153,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = localStorage.getItem(this.config.tokenKey || 'bottoken');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
