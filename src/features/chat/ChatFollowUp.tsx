@@ -13,7 +13,7 @@ interface ChatFollowUpProps {
 }
 
 export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, onChatWithUs, mode = "options" }: ChatFollowUpProps) => {
-  const { config, chatService } = useChat();
+  const { config, chatService, isAuthenticated } = useChat();
   const { style, colors, content } = config;
   const [chats, setChats] = useState<UserChat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,8 +96,9 @@ export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, on
   }, [config.user.id, chatService]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchChats();
-  }, [fetchChats]);
+  }, [fetchChats, isAuthenticated]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -192,7 +193,15 @@ export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, on
             </div>
           )}
 
-          {mode === "history" && (
+          {mode === "history" && !isAuthenticated && (
+            <div className="pb-1">
+              <p className="text-sm text-slate-400 text-center py-8 px-4">
+                {(content.history as {signInMessage?: string}).signInMessage || "Please sign in to view your conversation history"}
+              </p>
+            </div>
+          )}
+
+          {mode === "history" && isAuthenticated && (
             <div className="pb-1">
                <div className="flex items-center justify-between px-1 mb-3">
                  <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-400">

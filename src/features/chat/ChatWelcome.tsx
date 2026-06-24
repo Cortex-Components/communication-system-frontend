@@ -16,7 +16,7 @@ interface ChatWelcomeProps {
 }
 
 export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, onChatWithUs, onFollowRequest, onHistoryClick }: ChatWelcomeProps) => {
-  const { config } = useChat();
+  const { config, isAuthenticated } = useChat();
   const { style, content } = config;
 
   const { get } = useApi();
@@ -47,12 +47,14 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
         style={{ height: `min(${style.headerHeight}, 25vh)`, minHeight: "130px" }}
       >
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <button
-            onClick={onHistoryClick}
-            className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/30 transition-colors"
-          >
-            <History className="w-4 h-4" />
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={onHistoryClick}
+              className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/30 transition-colors"
+            >
+              <History className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={onClose}
             className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/30 transition-colors"

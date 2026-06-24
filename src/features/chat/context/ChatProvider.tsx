@@ -113,6 +113,8 @@ export const ChatProvider: React.FC<{
     return { apiClient: api, chatService: chat };
   }, [mergedConfig.api, language, accessToken]);
 
+  const isAuthenticated = useMemo(() => services.apiClient.hasToken(), [services.apiClient]);
+
   // Sync colors to Shadow DOM host whenever they change
   React.useLayoutEffect(() => {
     // Find the shadow host (the custom element itself)
@@ -139,8 +141,9 @@ export const ChatProvider: React.FC<{
     config: mergedConfig,
     role,
     currentPage,
-    ...services
-  }), [mergedConfig, role, currentPage, services]);
+    ...services,
+    isAuthenticated,
+  }), [mergedConfig, role, currentPage, services, isAuthenticated]);
 
   return (
     <ChatContext.Provider value={value}>

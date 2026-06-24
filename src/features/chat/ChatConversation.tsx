@@ -22,7 +22,7 @@ interface ChatConversationProps {
 }
 
 export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessage, initialAnswer, chatId, isStatic }: ChatConversationProps) => {
-  const { config, chatService } = useChat();
+  const { config, chatService, isAuthenticated } = useChat();
   const { user, assistant, style, colors } = config;
   const [isLoading, setIsLoading] = useState(false);
   const [chatTitle, setChatTitle] = useState<string | null>(null);
@@ -49,86 +49,79 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // let intervalId: NodeJS.Timeout;
+    if (!chatId) return;
 
-    if (chatId) {
-      // --- Authenticated polling (commented out: requires Bearer token) ---
-      // const fetchMessages = async () => {
-      //   try {
-      //     const history = await chatService.getUserMessages(user.id, chatId);
-      //     if (history.length > 0) {
-      //       const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-      //       const mappedMessages: Message[] = sortedHistory.map((m) => ({
-      //         id: m.message_id,
-      //         text: m.message,
-      //         sender: m.sender === "user" ? "user" : "other",
-      //         name: m.sender === "user" ? user.name : assistant.name,
-      //       }));
-      //       setMessages(prev => {
-      //         if (mappedMessages.length >= prev.length) {
-      //           return mappedMessages;
-      //         }
-      //         return prev;
-      //       });
-      //     }
-      //   } catch (error) {
-      //     if (error instanceof Error && error.message.includes("Unauthorized")) {
-      //       if (intervalId) clearInterval(intervalId);
-      //     }
-      //     console.warn("Failed to fetch messages (expected for public chats):", error);
-      //   }
-      // };
+    if (!isAuthenticated) return;
 
-      const initChat = async () => {
-        setIsLoading(true);
-        try {
-          // --- Requires auth: commented out for public chat sessions ---
-          // try {
-          //   const chatDetails = await chatService.getChat(user.id, chatId);
-          //   setChatTitle(chatDetails.title);
-          // } catch (e) {
-          //   console.warn("Could not fetch chat title:", e);
-          // }
-
-          // --- Requires auth: commented out for public chat sessions ---
-          // const history = await chatService.getUserMessages(user.id, chatId);
-          // if (history.length === 0) {
-          //   if (initialMessage) {
-          //     await chatService.sendMessage(user.id, chatId, initialMessage, 'user');
-          //     if (initialAnswer) {
-          //       await chatService.sendMessage(user.id, chatId, initialAnswer, 'user');
-          //     }
-          //     await fetchMessages();
-          //   }
-          // } else {
-          //   const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-          //   const mappedMessages: Message[] = sortedHistory.map((m) => ({
-          //     id: m.message_id,
-          //     text: m.message,
-          //     sender: m.sender === "user" ? "user" : "other",
-          //     name: m.sender === "user" ? user.name : assistant.name,
-          //   }));
-          //   setMessages(mappedMessages);
-          // }
-        } catch (error) {
-          console.error("Failed to sync chat state:", error);
-        } finally {
-          setIsLoading(false);
+    const fetchMessages = async () => {
+      try {
+        const history = await chatService.getUserMessages(user.id, chatId);
+        if (history.length > 0) {
+          const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          const mappedMessages: Message[] = sortedHistory.map((m) => ({
+            id: m.message_id,
+            text: m.message,
+            sender: m.sender === "user" ? "user" : "other",
+            name: m.sender === "user" ? user.name : assistant.name,
+          }));
+          setMessages(prev => {
+            if (mappedMessages.length >= prev.length) {
+              return mappedMessages;
+            }
+            return prev;
+          });
         }
-      };
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("Unauthorized")) {
+          if (intervalId) clearInterval(intervalId);
+        }
+        console.warn("Failed to fetch messages:", error);
+      }
+    };
 
-      initChat();
+    const initChat = async () => {
+      setIsLoading(true);
+      try {
+        const chatDetails = await chatService.getChat(user.id, chatId);
+        setChatTitle(chatDetails.title);
 
-      // --- Polling via authenticated endpoint (commented out for public sessions) ---
-      // if (!isStatic) {
-      //   intervalId = setInterval(fetchMessages, 3000);
-      // }
+        const history = await chatService.getUserMessages(user.id, chatId);
+        if (history.length === 0) {
+          if (initialMessage) {
+            await chatService.sendMessage(user.id, chatId, initialMessage, 'user');
+            if (initialAnswer) {
+              await chatService.sendMessage(user.id, chatId, initialAnswer, 'user');
+            }
+            await fetchMessages();
+          }
+        } else {
+          const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+          const mappedMessages: Message[] = sortedHistory.map((m) => ({
+            id: m.message_id,
+            text: m.message,
+            sender: m.sender === "user" ? "user" : "other",
+            name: m.sender === "user" ? user.name : assistant.name,
+          }));
+          setMessages(mappedMessages);
+        }
+      } catch (error) {
+        console.error("Failed to sync chat state:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initChat();
+
+    let intervalId: NodeJS.Timeout;
+    if (!isStatic) {
+      intervalId = setInterval(fetchMessages, 3000);
     }
 
     return () => {
-      // if (intervalId) clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [chatId, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic]);
+  }, [chatId, assistant.name, user.name, initialMessage, initialAnswer, chatService, isStatic, isAuthenticated, user.id]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
