@@ -64,6 +64,8 @@ export class ApiClient {
       headers
     });
     if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[ApiClient GET] Error ${response.status}:`, errorBody);
       throw new Error(`API error: ${response.statusText}`);
     }
     const text = await response.text();
@@ -100,6 +102,8 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`[ApiClient POST] Error ${response.status}:`, errorBody);
       throw new Error(`API error: ${response.statusText}`);
     }
     const text = await response.text();

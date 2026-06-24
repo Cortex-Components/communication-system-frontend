@@ -211,6 +211,7 @@ const API_CONFIG: ApiConfig = {
       user_chats: "/user_chat/me",
       user_chat: "/user_chat/{chat_id}",
       user_messages: "/user_message/{chat_id}",
+      user_message_post: "/user_message",
       create_message: "/public/chat/{chat_id}",
       create_user_chat: "/user_chat",
       delete_chat: "/user_chats",

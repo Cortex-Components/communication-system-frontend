@@ -4,7 +4,6 @@ import { ApiClient, apiClient as defaultApiClient } from "./api";
  * Interface representing a message from the backend
  */
 export interface UserMessage {
-  user_id: number;
   chat_id: string;
   message_id: string;
   message: string;
@@ -60,9 +59,8 @@ export class ChatService {
    * Creates a new chat session for a user
    * POST /api/v1/user_chat
    */
-  async createChat(userId: number, title: string): Promise<UserChat> {
+  async createChat(_userId: number, title: string): Promise<UserChat> {
     return this.apiClient.post<UserChat>("home", "create_user_chat", { 
-      user_id: userId,
       title: title
     });
   }
@@ -82,18 +80,30 @@ export class ChatService {
    * GET /api/v1/user_message/{user_id}/{chat_id}
    */
   async getUserMessages(_userId: number, chatId: string): Promise<UserMessage[]> {
-    return this.apiClient.get<UserMessage[]>("home", "user_messages", { 
+    const response = await this.apiClient.get<UserMessage[]>("home", "user_messages", { 
       chat_id: chatId 
     });
+    console.log(`[ChatService] Messages for ${chatId}:`, response);
+    return response;
   }
 
   /**
    * Sends a new message for a specific chat
    * POST /api/v1/user_message
    */
-  async sendMessage(userId: number, chatId: string, message: string, sender: 'user' | 'chabot' | 'support' = 'user'): Promise<UserMessage> {
-    // For public endpoints, message is passed in query. 
-    // We send an empty body to strictly match the documentation.
+  async sendMessage(_userId: number, chatId: string, message: string, _sender: string = 'user'): Promise<UserMessage> {
+    // If we have a token, we should use the authenticated user_message endpoint
+    if (this.apiClient.hasToken()) {
+      const payload = { 
+        chat_id: chatId,
+        message: message
+      };
+      console.log("[ChatService] Sending authenticated message:", payload);
+      return this.apiClient.post<UserMessage>("home", "user_message_post", payload);
+    }
+    
+    // Fallback to public endpoint for guest users
+    console.log("[ChatService] Sending public message for chat:", chatId);
     return this.apiClient.post<UserMessage>("home", "create_message", {}, { chat_id: chatId }, { message: message });
   }
 

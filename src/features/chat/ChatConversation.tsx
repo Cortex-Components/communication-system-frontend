@@ -56,56 +56,92 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
     const fetchMessages = async () => {
       try {
         const history = await chatService.getUserMessages(user.id, chatId);
-        if (history.length > 0) {
-          const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-          const mappedMessages: Message[] = sortedHistory.map((m) => ({
-            id: m.message_id,
-            text: m.message,
-            sender: m.sender === "user" ? "user" : "other",
-            name: m.sender === "user" ? user.name : assistant.name,
-          }));
-          setMessages(prev => {
-            if (mappedMessages.length >= prev.length) {
-              return mappedMessages;
-            }
-            return prev;
-          });
-        }
+          const historyArray = Array.isArray(history) ? history : [];
+          if (historyArray.length > 0) {
+            const sortedHistory = [...historyArray].sort((a, b) => {
+              const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+              const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return timeA - timeB;
+            });
+            
+            const mappedMessages: Message[] = sortedHistory.map((m) => ({
+              id: m.message_id || Math.random().toString(36).substr(2, 9),
+              text: m.message || "",
+              sender: String(m.sender || "").toLowerCase() === "user" ? "user" : "other",
+              name: String(m.sender || "").toLowerCase() === "user" ? user.name : assistant.name,
+            }));
+            
+            setMessages(prev => {
+              // Only update if we have more messages or different content to avoid re-renders
+              if (mappedMessages.length !== prev.length || JSON.stringify(mappedMessages) !== JSON.stringify(prev)) {
+                return mappedMessages;
+              }
+              return prev;
+            });
+          }
       } catch (error) {
         if (error instanceof Error && error.message.includes("Unauthorized")) {
           if (intervalId) clearInterval(intervalId);
         }
-        console.warn("Failed to fetch messages:", error);
+        // Silence 404 errors as they are expected for new/empty conversations
+        if (error instanceof Error && !error.message.includes("Not Found")) {
+          console.warn("Failed to fetch messages:", error);
+        }
       }
     };
 
     const initChat = async () => {
       setIsLoading(true);
       try {
-        const chatDetails = await chatService.getChat(user.id, chatId);
-        setChatTitle(chatDetails.title);
+        // Attempt to fetch chat details (title)
+        try {
+          const chatDetails = await chatService.getChat(user.id, chatId);
+          if (chatDetails && chatDetails.title) {
+            setChatTitle(chatDetails.title);
+          }
+        } catch (e) {
+          // Ignore 404 for chat details
+          if (!(e instanceof Error && e.message.includes("Not Found"))) {
+            throw e;
+          }
+        }
 
         const history = await chatService.getUserMessages(user.id, chatId);
-        if (history.length === 0) {
-          if (initialMessage) {
+        console.log(`[ChatConversation] Raw history for ${chatId}:`, history);
+        const historyArray = Array.isArray(history) ? history : [];
+        
+        if (historyArray.length > 0) {
+          const sortedHistory = [...historyArray].sort((a, b) => {
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return timeA - timeB;
+          });
+          
+          const mappedMessages: Message[] = sortedHistory.map((m) => ({
+            id: m.message_id || Math.random().toString(36).substr(2, 9),
+            text: m.message || "",
+            sender: String(m.sender || "").toLowerCase() === "user" ? "user" : "other",
+            name: String(m.sender || "").toLowerCase() === "user" ? user.name : assistant.name,
+          }));
+          setMessages(mappedMessages);
+        } else {
+          // Clear messages if history is empty
+          setMessages([]);
+          
+          // If no history and we have an initial message, send it to initialize the chat
+          if (initialMessage && isAuthenticated) {
             await chatService.sendMessage(user.id, chatId, initialMessage, 'user');
             if (initialAnswer) {
               await chatService.sendMessage(user.id, chatId, initialAnswer, 'user');
             }
             await fetchMessages();
           }
-        } else {
-          const sortedHistory = [...history].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-          const mappedMessages: Message[] = sortedHistory.map((m) => ({
-            id: m.message_id,
-            text: m.message,
-            sender: m.sender === "user" ? "user" : "other",
-            name: m.sender === "user" ? user.name : assistant.name,
-          }));
-          setMessages(mappedMessages);
         }
       } catch (error) {
-        console.error("Failed to sync chat state:", error);
+        // Silence 404 errors during initialization
+        if (error instanceof Error && !error.message.includes("Not Found")) {
+          console.error("Failed to sync chat state:", error);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -218,7 +254,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
           <div key={msg.id} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
             {msg.sender !== "user" && msg.name && (
               <div className="flex items-center gap-2 mb-1.5 ml-1">
-                <div className="w-6 h-6 rounded-full bg-cortex-amber/20 flex items-center justify-center text-[10px] font-bold text-cortex-amber">
+                <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
                   {msg.name[0]}
                 </div>
                 <span className="text-xs font-medium text-muted-foreground">{msg.name}</span>
@@ -243,7 +279,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
         {isAITyping && (
           <div className="flex flex-col items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex items-center gap-2 mb-1.5 ml-1">
-              <div className="w-6 h-6 rounded-full bg-cortex-amber/20 flex items-center justify-center text-[10px] font-bold text-cortex-amber">
+              <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
                 {assistant.name[0]}
               </div>
               <span className="text-xs font-medium text-muted-foreground">{assistant.name}</span>

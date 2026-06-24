@@ -22,7 +22,7 @@ interface ChatWidgetProps {
 }
 
 const ChatWidgetContent = () => {
-  const { config, role, chatService } = useChat();
+  const { config, role, chatService, isAuthenticated } = useChat();
   const [view, setView] = useState<ChatView>("closed");
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
@@ -35,7 +35,7 @@ const ChatWidgetContent = () => {
   const { apiClient, currentPage } = useChat();
 
   const handleChatSelect = (chatId: string) => {
-
+    console.log("[ChatWidget] Selecting chat from history:", chatId);
     setSelectedChatId(chatId);
     setSelectedOption("");
     setSelectedAnswer("");
@@ -88,12 +88,26 @@ const ChatWidgetContent = () => {
 
 
 
-  const handleChatWithUs = () => {
+  const handleChatWithUs = async () => {
     setSelectedOption("");
     setSelectedAnswer("");
     setIsFaqOnly(false);
-    // Use a fixed chat ID from env and send via /public/chat/{chat_id}
-    setSelectedChatId(getChatId());
+    
+    if (isAuthenticated) {
+      try {
+        // Create a new registered chat on the backend
+        const newChat = await chatService.createChat(user.id, "Support Chat");
+        console.log("[ChatWidget] Created new authenticated chat:", newChat);
+        setSelectedChatId(newChat.chat_id);
+      } catch (error) {
+        console.error("Failed to create new chat:", error);
+        setSelectedChatId(getChatId());
+      }
+    } else {
+      // Use a fixed chat ID from env and send via /public/chat/{chat_id}
+      setSelectedChatId(getChatId());
+    }
+    
     setView("chat");
   };
 

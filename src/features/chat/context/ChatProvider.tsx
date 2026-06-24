@@ -113,7 +113,20 @@ export const ChatProvider: React.FC<{
     return { apiClient: api, chatService: chat };
   }, [mergedConfig.api, language, accessToken]);
 
-  const isAuthenticated = useMemo(() => services.apiClient.hasToken(), [services.apiClient]);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(services.apiClient.hasToken() || !!accessToken);
+  
+  // Handle accessToken prop sync with localStorage for login/logout
+  React.useEffect(() => {
+    const tokenKey = mergedConfig.api.tokenKey || 'bottoken';
+    if (accessToken) {
+      localStorage.setItem(tokenKey, accessToken);
+      setIsAuthenticated(true);
+    } else if (accessToken === null || accessToken === undefined) {
+      // Clear token on logout
+      localStorage.removeItem(tokenKey);
+      setIsAuthenticated(false);
+    }
+  }, [accessToken, mergedConfig.api.tokenKey]);
 
   // Sync colors to Shadow DOM host whenever they change
   React.useLayoutEffect(() => {
