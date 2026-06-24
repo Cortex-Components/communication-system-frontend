@@ -5,6 +5,7 @@ export interface ApiConfig {
   };
   pageEndpoints: Record<string, string>;
   tenantId?: string;
+  tokenKey?: string;
 }
 
 
@@ -223,6 +224,7 @@ const API_CONFIG: ApiConfig = {
     },
     pageEndpoints: (import.meta.env.VITE_AVAILABLE_PAGES ? import.meta.env.VITE_AVAILABLE_PAGES.split(",") : ["home", "support"]).reduce((acc: Record<string, string>, page: string) => ({ ...acc, [page.trim()]: page.trim() }), {}),
     tenantId: import.meta.env.VITE_X_TENANT_ID,
+    tokenKey: import.meta.env.VITE_TOKEN_KEY || 'bottoken',
 };
 
 export const APP_CONFIG: AppConfig = {

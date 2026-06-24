@@ -9,6 +9,7 @@ export interface ChatContextType {
   currentPage: string;
   apiClient: ApiClient;
   chatService: ChatService;
+  isAuthenticated: boolean;
 }
 
 export const ChatContext = createContext<ChatContextType | undefined>(undefined);
