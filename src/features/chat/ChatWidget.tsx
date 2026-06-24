@@ -17,6 +17,7 @@ export type ChatView = "closed" | "welcome" | "follow-up" | "change-requests" | 
 interface ChatWidgetProps {
   role?: string;
   currentPage?: string;
+  accessToken?: string;
   config?: Partial<ChatConfig>;
 }
 
@@ -213,8 +214,7 @@ const ChatWidgetContent = () => {
       {view === "closed" && (
         <button
           onClick={() => setView("welcome")}
-          className={`${layout.bubbleWidth} ${layout.bubbleHeight} pt-1 rounded-xl shadow-lg flex items-center justify-center transition-transform ${layout.zIndex.bubble}`}
-          style={{ background: "var(--cortex-header-gradient)" }}
+          className={`${layout.bubbleWidth} ${layout.bubbleHeight} pt-1 rounded-xl shadow-lg flex items-center justify-center transition-transform ${layout.zIndex.bubble} bg-cortex-header-gradient`}
         >
           <img src={ChatIcon} alt="Chat" className="w-9 h-9" />
         </button>
@@ -223,9 +223,9 @@ const ChatWidgetContent = () => {
   );
 };
 
-export const ChatWidget = ({ role = "dev", currentPage = "home", config }: ChatWidgetProps) => {
+export const ChatWidget = ({ role = "dev", currentPage = "home", accessToken, config }: ChatWidgetProps) => {
   return (
-    <ChatProvider role={role} currentPage={currentPage} config={config}>
+    <ChatProvider role={role} currentPage={currentPage} accessToken={accessToken} config={config}>
       <ChatWidgetContent />
     </ChatProvider>
   );

@@ -238,8 +238,8 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
                   : "rounded-2xl rounded-tl-none"
               }`}
               style={{
-                backgroundColor: msg.sender === "user" ? colors.bgGray : colors.cream,
-                color: colors.black
+                backgroundColor: msg.sender === "user" ? colors.secondary : colors.bgGray,
+                color: msg.sender === "user" ? "#FFFFFF" : colors.black
               }}
             >
               {msg.text}
@@ -258,7 +258,7 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
             <div
               className="px-4 py-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1"
               style={{
-                backgroundColor: colors.cream,
+                backgroundColor: colors.bgGray,
                 color: colors.black
               }}
             >
@@ -274,14 +274,14 @@ export const ChatConversation = ({ onBack, onClose, onHistoryClick, initialMessa
 
       {/* Input area */}
       {!isStatic && (
-        <div className="bg-cortex-cream px-5 py-6">
+        <div className="bg-sec-5 px-5 py-6">
           <div className="flex items-center gap-3">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter Your Message..."
-              className="flex-1 bg-transparent text-[16px] text-cortex-black/70 placeholder:text-cortex-black/40 outline-none"
+              className="flex-1 bg-transparent text-[16px] text-main-1/70 placeholder:text-main-1/40 outline-none"
             />
             <button
               onClick={sendMessage}

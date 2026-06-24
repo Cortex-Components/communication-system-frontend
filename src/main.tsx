@@ -19,7 +19,7 @@ class CortexChatWidget extends HTMLElement {
     private mountPoint: HTMLDivElement | null = null;
 
     static get observedAttributes() {
-        return ["role", "current-page", "config"];
+        return ["role", "current-page", "config", "access-token", "access_token"];
     }
 
     constructor() {
@@ -49,9 +49,9 @@ class CortexChatWidget extends HTMLElement {
         this.style.setProperty('--accent', secondary);
         this.style.setProperty('--cortex-primary', primary);
         this.style.setProperty('--cortex-secondary', secondary);
-        this.style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
-        this.style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
-        this.style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
+        // this.style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
+        // this.style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
+        // this.style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
     }
 
     attributeChangedCallback() {
@@ -125,10 +125,12 @@ class CortexChatWidget extends HTMLElement {
             }
         }
 
+        const accessToken = this.getAttribute("access-token") || this.getAttribute("access_token") || undefined;
+        
         this.reactRoot.render(
             <QueryClientProvider client={queryClient}>
                 <LanguageProvider>
-                    <ChatWidget role={role} currentPage={currentPage} config={config} />
+                    <ChatWidget role={role} currentPage={currentPage} accessToken={accessToken} config={config} />
                 </LanguageProvider>
             </QueryClientProvider>
         );

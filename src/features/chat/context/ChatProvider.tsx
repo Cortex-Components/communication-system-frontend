@@ -37,8 +37,9 @@ export const ChatProvider: React.FC<{
   config?: Partial<ChatConfig>;
   role?: string;
   currentPage?: string;
+  accessToken?: string;
   children: React.ReactNode;
-}> = ({ config, role = 'dev', currentPage = 'home', children }) => {
+}> = ({ config, role = 'dev', currentPage = 'home', accessToken, children }) => {
   const { language } = useLanguage();
 
   // Merge provided config with default CHAT_CONFIG
@@ -106,11 +107,11 @@ export const ChatProvider: React.FC<{
 
   // Create service instances tailored to this config
   const services = useMemo(() => {
-    const api = new ApiClient(mergedConfig.api);
+    const api = new ApiClient(mergedConfig.api, accessToken);
     api.language = language;
     const chat = new ChatService(api);
     return { apiClient: api, chatService: chat };
-  }, [mergedConfig.api, language]);
+  }, [mergedConfig.api, language, accessToken]);
 
   // Sync colors to Shadow DOM host whenever they change
   React.useLayoutEffect(() => {
@@ -128,9 +129,9 @@ export const ChatProvider: React.FC<{
       style.setProperty('--accent', secondary);
       style.setProperty('--cortex-primary', primary);
       style.setProperty('--cortex-secondary', secondary);
-      style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
-      style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
-      style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
+      // style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
+      // style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
+      // style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
     }
   }, [mergedConfig.colors.primary, mergedConfig.colors.secondary]);
 

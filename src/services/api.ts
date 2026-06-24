@@ -6,9 +6,11 @@ import { APP_CONFIG, ApiConfig } from "@/config/app-config";
 export class ApiClient {
   private config: ApiConfig;
   public language: string = 'en';
+  public accessToken?: string;
 
-  constructor(config: ApiConfig = APP_CONFIG.api) {
+  constructor(config: ApiConfig = APP_CONFIG.api, accessToken?: string) {
     this.config = config;
+    this.accessToken = accessToken;
   }
 
   get baseUrl(): string {
@@ -45,7 +47,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = this.accessToken || localStorage.getItem('admin_token') || localStorage.getItem('access_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -79,7 +81,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = this.accessToken || localStorage.getItem('admin_token') || localStorage.getItem('access_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -114,7 +116,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = this.accessToken || localStorage.getItem('admin_token') || localStorage.getItem('access_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -149,7 +151,7 @@ export class ApiClient {
       'Accept-Language': this.language,
     };
 
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('access_token');
+    const token = this.accessToken || localStorage.getItem('admin_token') || localStorage.getItem('access_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }

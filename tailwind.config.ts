@@ -58,6 +58,20 @@ export default {
           white: "#FFFFFF",
           gray: "#D9D9D9",
         },
+        main: {
+          1: "var(--color-main-1)",
+          2: "var(--color-main-2)",
+          3: "var(--color-main-3)",
+        },
+        sec: {
+          1: "var(--color-sec-1)",
+          2: "var(--color-sec-2)",
+          3: "var(--color-sec-3)",
+          4: "var(--color-sec-4)",
+          5: "var(--color-sec-5)",
+          6: "var(--color-sec-6)",
+          7: "var(--color-sec-7)",
+        },
       },
       backgroundImage: {
         'cortex-header-gradient': "var(--cortex-header-gradient)",

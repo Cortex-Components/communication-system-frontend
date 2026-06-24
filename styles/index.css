@@ -71,14 +71,27 @@ All colors MUST be HSL.
     --cortex-white: 0 0% 100%;
     --cortex-gray: 0 0% 85%;
 
+    /* Main & Secondary Palette */
+    --color-main-1: #0C161F;
+    --color-main-2: #18293D;
+    --color-main-3: #FFFFFF;
+
+    --color-sec-1: #18293D;
+    --color-sec-2: #2b3d55;
+    --color-sec-3: #0C161F;
+    --color-sec-4: #18293D;
+    --color-sec-5: #F0F0F0;
+    --color-sec-6: #F0F0F0;
+    --color-sec-7: #FFFFFF;
+
     /* Custom Header Gradient */
-    --cortex-header-gradient: linear-gradient(360deg, var(--cortex-secondary, #DDD8BB) -68.13%, #858B89 15.94%, var(--cortex-primary, #37475C) 100%);
+    --cortex-header-gradient: linear-gradient(180deg,rgba(24, 41, 61, 1) 0%, rgba(145, 152, 162, 1) 100%, rgba(24, 41, 61, 1) 0%);
     
     /* Custom Button Gradient */
-    --cortex-button-gradient: linear-gradient(270deg, var(--cortex-secondary, #DDD8BB) 0%, #858B89 50%, var(--cortex-primary, #37475C) 100%);
+    --cortex-button-gradient: linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%);
 
     /* Custom Icon Gradient */
-    --cortex-icon-gradient: linear-gradient(90deg, var(--cortex-secondary, #DBD6BA) 0%, #949791 15.87%, var(--cortex-primary, #3A495E) 68.27%);
+    --cortex-icon-gradient: linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%);
   }
 
   .dark {

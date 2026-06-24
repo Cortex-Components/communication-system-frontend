@@ -17,7 +17,8 @@ export interface Faq {
 }
 
 export interface UserChat {
-  user_id: number;
+  tenant_id: string;
+  user_id: string;
   chat_id: string;
   title: string;
   created_at: string;
@@ -202,11 +203,7 @@ export interface AppConfig {
 }
 
 const API_CONFIG: ApiConfig = {
-    // Force a relative path for local development to ensure the Vite proxy is always used.
-    // In production, fallback to an absolute URL if no environment override is provided.
-    baseUrl: import.meta.env.DEV 
-        ? "/api/v1" 
-        : (import.meta.env.VITE_API_BASE_URL || "http://142.93.167.9:8010/api/v1"),
+    baseUrl: import.meta.env.VITE_API_BASE_URL || "/api/v1",
     endpoints: {
       faqs: "/public/page/{page}/faqs",
       faq_details: "/public/page/{page}/faqs/{faq_id}",
@@ -254,22 +251,22 @@ export const APP_CONFIG: AppConfig = {
         borderRadius: "24px",
       },
       gradients: {
-        header: `linear-gradient(360deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} -68.13%, #858B89 15.94%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
-        button: `linear-gradient(270deg, ${import.meta.env.VITE_COLOR_SECONDARY || "#DDD8BB"} 0%, #858B89 50%, ${import.meta.env.VITE_COLOR_PRIMARY || "#37475C"} 100%)`,
+        header: `linear-gradient(180deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%)`,
+        button: `linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%)`,
       }
     },
 
     // Color Palette (Commonly used hex codes)
     colors: {
-      primary: import.meta.env.VITE_COLOR_PRIMARY || "#2B3D55",
-      secondary: import.meta.env.VITE_COLOR_SECONDARY || "#F2DCB3",
-      primaryText: import.meta.env.VITE_COLOR_PRIMARY || "#2B3D55",
+      primary: import.meta.env.VITE_COLOR_PRIMARY || "#0C161F",
+      secondary: import.meta.env.VITE_COLOR_SECONDARY || "#18293D",
+      primaryText: import.meta.env.VITE_COLOR_PRIMARY || "#0C161F",
       secondaryText: "#737373",
       mutedText: "#7E8CA0",
       black: "#0C161F",
       pureBlack: "#000000",
       cream: "#F2E9C3",
-      tan: "#F2DCB3",
+      tan: "#D5B691",
       border: "#DEDEDE",
       bgGray: "#D9D9D9",
       wordsGray: "#949791",

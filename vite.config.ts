@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         "/api": {
-          target: env.VITE_PROXY_TARGET || "http://142.93.167.9:8010",
+          target: env.VITE_PROXY_TARGET || "https://communication-system-back-bzazb5fffgdbcrhw.northeurope-01.azurewebsites.net",
           changeOrigin: true,
           secure: false,
         },

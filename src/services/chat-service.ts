@@ -16,7 +16,8 @@ export interface UserMessage {
  * Interface representing a user chat (conversation thread)
  */
 export interface UserChat {
-  user_id: number;
+  tenant_id: string;
+  user_id: string;
   chat_id: string;
   title: string;
   created_at: string;
