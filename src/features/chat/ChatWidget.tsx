@@ -23,6 +23,7 @@ interface ChatWidgetProps {
 
 const ChatWidgetContent = () => {
   const { config, role, chatService, isAuthenticated } = useChat();
+  const featureEnabled = config.featureFlags?.cortexInternal;
   const [view, setView] = useState<ChatView>("closed");
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
@@ -46,7 +47,7 @@ const ChatWidgetContent = () => {
   const handleOptionSelect = async (option: string | Faq) => {
     const questionText = typeof option === "string" ? option : option.question;
     const lowerText = questionText.toLowerCase();
-    const isStatusCheck = lowerText.includes("change request status");
+    const isStatusCheck = featureEnabled && lowerText.includes("change request status");
     if (isStatusCheck) {
       setView("change-requests");
       return;
@@ -111,15 +112,15 @@ const ChatWidgetContent = () => {
     setView("chat");
   };
 
-  const handleRequestChange = () => {
+  const handleRequestChange = featureEnabled ? () => {
     const nextView = config.rolePermissions[role]?.requestChangeView || "user-request-change";
     setView(nextView as ChatView);
-  };
+  } : undefined;
 
-  const handleFollowRequest = () => {
+  const handleFollowRequest = featureEnabled ? () => {
     setFollowUpMode("options");
     setView("follow-up");
-  };
+  } : undefined;
 
   return (
     <div 
@@ -161,7 +162,7 @@ const ChatWidgetContent = () => {
               mode={followUpMode}
             />
           )}
-          {view === "change-requests" && (
+          {featureEnabled && view === "change-requests" && (
             <ChangeRequestList
               onClose={() => setView("closed")}
               onBack={() => setView("follow-up")}
@@ -172,7 +173,7 @@ const ChatWidgetContent = () => {
               onChatWithUs={handleChatWithUs}
             />
           )}
-          {view === "change-request-details" && (
+          {featureEnabled && view === "change-request-details" && (
             <ChangeRequestDetails
               requestId={selectedRequestId}
               onClose={() => setView("closed")}
@@ -186,7 +187,7 @@ const ChatWidgetContent = () => {
               }}
             />
           )}
-          {view === "user-request-change" && (
+          {featureEnabled && view === "user-request-change" && (
             <RequestChangeModal
               onClose={() => setView("closed")}
               onCancel={() => setView("welcome")}
@@ -197,7 +198,7 @@ const ChatWidgetContent = () => {
               onChatWithUs={handleChatWithUs}
             />
           )}
-          {view === "create-change-request" && (
+          {featureEnabled && view === "create-change-request" && (
             <CreateChangeRequest
               onClose={() => setView("closed")}
               onCancel={() => setView("welcome")}

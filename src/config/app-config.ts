@@ -56,6 +56,9 @@ export interface PurchasedModule {
 }
 
 export interface ChatConfig {
+  featureFlags: {
+    cortexInternal: boolean;
+  };
   followUpOptions: string[];
   layout: {
     widgetWidth: string;
@@ -229,6 +232,9 @@ export const APP_CONFIG: AppConfig = {
   api: API_CONFIG,
 
   chat: {
+    featureFlags: {
+      cortexInternal: import.meta.env.VITE_CORTEX_INTERNAL === 'true'
+    },
     // Widget Dimensions & Positioning
     layout: {
       widgetWidth: "420px",

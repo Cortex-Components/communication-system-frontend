@@ -9,9 +9,9 @@ interface ChatWelcomeProps {
   role: string;
   onClose: () => void;
   onOptionSelect: (faq: Faq | string) => void;
-  onRequestChange: () => void;
+  onRequestChange?: () => void;
   onChatWithUs: () => void;
-  onFollowRequest: () => void;
+  onFollowRequest?: () => void;
   onHistoryClick: () => void;
 }
 
@@ -76,12 +76,14 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
           <p className="text-[14px] sm:text-[16px] text-muted-foreground truncate flex-1">
             {content.welcome.optionPrompt}
           </p>
-          {/* <button
-            onClick={onRequestChange}
-            className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[11px] sm:text-[12px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
-          >
-            {(content.welcome as {requestBtn?: string}).requestBtn || "Request a change"}
-          </button> */}
+          {onRequestChange && (
+            <button
+              onClick={onRequestChange}
+              className="px-2 sm:px-4 py-2 rounded-[12px] bg-cortex-button-gradient text-white text-[11px] sm:text-[12px] font-semibold transition-all shadow-sm active:scale-95 hover:text-cortex-cream"
+            >
+              {(content.welcome as {requestBtn?: string}).requestBtn || "Request a change"}
+            </button>
+          )}
         </div>
         
         <div 
@@ -108,12 +110,14 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
         </div>
 
         <div className="mt-auto pt-3 sm:pt-4 shrink-0 flex flex-col gap-2.5 sm:gap-3">
-          {/* <button
-            onClick={onFollowRequest}
-            className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"
-          >
-            {content.welcome.followBtn}
-          </button> */}
+          {onFollowRequest && (
+            <button
+              onClick={onFollowRequest}
+              className="w-full py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:text-cortex-cream font-semibold transition-all shadow-md active:scale-[0.98] bg-cortex-button-gradient"
+            >
+              {content.welcome.followBtn}
+            </button>
+          )}
           <button
             onClick={onChatWithUs}
             className="w-full bg-main-2 py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:bg-main-1 hover:text-[#F0F0F0] font-semibold transition-all shadow-md active:scale-[0.98]"
