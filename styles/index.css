@@ -71,11 +71,12 @@ All colors MUST be HSL.
     --cortex-white: 0 0% 100%;
     --cortex-gray: 0 0% 85%;
 
-    /* Main & Secondary Palette */
+    /* NOTE: --color-main-1, --color-main-2, --color-sec-*, and gradients
+       are now set dynamically by main.tsx updateHostStyles() via JS.
+       Fallbacks are kept here ONLY for editors/tooling, not used at runtime. */
     --color-main-1: #0C161F;
     --color-main-2: #18293D;
     --color-main-3: #FFFFFF;
-
     --color-sec-1: #18293D;
     --color-sec-2: #2b3d55;
     --color-sec-3: #0C161F;
@@ -83,15 +84,9 @@ All colors MUST be HSL.
     --color-sec-5: #F0F0F0;
     --color-sec-6: #F0F0F0;
     --color-sec-7: #FFFFFF;
-
-    /* Custom Header Gradient */
-    --cortex-header-gradient: linear-gradient(180deg,rgba(24, 41, 61, 1) 0%, rgba(145, 152, 162, 1) 100%, rgba(24, 41, 61, 1) 0%);
-    
-    /* Custom Button Gradient */
-    --cortex-button-gradient: linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%);
-
-    /* Custom Icon Gradient */
-    --cortex-icon-gradient: linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%);
+    --cortex-header-gradient: linear-gradient(180deg, #0C161F 0%, #18293D 100%);
+    --cortex-button-gradient: linear-gradient(90deg, #0C161F 0%, #18293D 100%);
+    --cortex-icon-gradient:   linear-gradient(90deg, #0C161F 0%, #18293D 100%);
   }
 
   .dark {

@@ -137,16 +137,24 @@ export const ChatProvider: React.FC<{
       const primary = mergedConfig.colors.primary;
       const secondary = mergedConfig.colors.secondary;
       
-      // Update variables on the :host style
       const style = (host as HTMLElement).style;
+      // Core vars
+      style.setProperty('--cortex-primary', primary);
+      style.setProperty('--cortex-secondary', secondary);
       style.setProperty('--primary', primary);
       style.setProperty('--secondary', secondary);
       style.setProperty('--accent', secondary);
-      style.setProperty('--cortex-primary', primary);
-      style.setProperty('--cortex-secondary', secondary);
-      // style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
-      // style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
-      // style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);
+      // Palette vars used by Tailwind bg-main-* classes
+      style.setProperty('--color-main-1', primary);
+      style.setProperty('--color-main-2', secondary);
+      style.setProperty('--color-sec-1', secondary);
+      style.setProperty('--color-sec-2', secondary);
+      style.setProperty('--color-sec-3', primary);
+      style.setProperty('--color-sec-4', secondary);
+      // Gradients
+      style.setProperty('--cortex-header-gradient', `linear-gradient(180deg, ${primary} 0%, ${secondary} 100%)`);
+      style.setProperty('--cortex-button-gradient', `linear-gradient(90deg, ${primary} 0%, ${secondary} 100%)`);
+      style.setProperty('--cortex-icon-gradient',   `linear-gradient(90deg, ${primary} 0%, ${secondary} 100%)`);
     }
   }, [mergedConfig.colors.primary, mergedConfig.colors.secondary]);
 

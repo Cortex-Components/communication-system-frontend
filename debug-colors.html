@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Color Debug</title>
+  </head>
+  <body>
+    <h2>Color Chain Diagnostic</h2>
+    <pre
+      id="out"
+      style="background: #111; color: #0f0; padding: 20px; font-size: 13px"
+    ></pre>
+    <script>
+      function log(msg) {
+        document.getElementById("out").textContent += msg + "\n";
+      }
+
+      // Wait for custom element to be defined and connected
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const host = document.querySelector("cortex-chat");
+          if (!host) {
+            log("ERROR: <cortex-chat> element not found");
+            return;
+          }
+
+          const inlineStyle = host.style;
+          const computed = getComputedStyle(host);
+
+          log("=== HOST ELEMENT INLINE STYLE ===");
+          log(
+            "--cortex-primary:  " +
+              (inlineStyle.getPropertyValue("--cortex-primary") || "(empty)"),
+          );
+          log(
+            "--cortex-secondary:" +
+              (inlineStyle.getPropertyValue("--cortex-secondary") || "(empty)"),
+          );
+          log(
+            "--color-main-1:    " +
+              (inlineStyle.getPropertyValue("--color-main-1") || "(empty)"),
+          );
+          log(
+            "--color-main-2:    " +
+              (inlineStyle.getPropertyValue("--color-main-2") || "(empty)"),
+          );
+
+          log("\n=== HOST ELEMENT COMPUTED STYLE ===");
+          log(
+            "--cortex-primary:  " +
+              (computed.getPropertyValue("--cortex-primary") || "(empty)"),
+          );
+          log(
+            "--color-main-2:    " +
+              (computed.getPropertyValue("--color-main-2") || "(empty)"),
+          );
+
+          if (host.shadowRoot) {
+            const shadowRoot = host.shadowRoot;
+            const inner =
+              shadowRoot.querySelector("#cortex-chat-root") ||
+              shadowRoot.firstElementChild;
+            if (inner) {
+              const innerComp = getComputedStyle(inner);
+              log("\n=== SHADOW ROOT INNER DIV ===");
+              log(
+                "--cortex-primary:  " +
+                  (innerComp.getPropertyValue("--cortex-primary") || "(empty)"),
+              );
+              log(
+                "--color-main-2:    " +
+                  (innerComp.getPropertyValue("--color-main-2") || "(empty)"),
+              );
+              log("background-color:  " + innerComp.backgroundColor);
+            } else {
+              log("\nShadow root exists but inner div not found");
+              log("Shadow root children: " + shadowRoot.children.length);
+            }
+          } else {
+            log("\nNo shadow root found!");
+          }
+        }, 2000);
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+    <cortex-chat></cortex-chat>
+  </body>
+</html>

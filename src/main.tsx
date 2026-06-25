@@ -44,11 +44,26 @@ class CortexChatWidget extends HTMLElement {
             }
         }
 
+        // Core cortex vars (referenced by all downstream vars)
+        this.style.setProperty('--cortex-primary', primary);
+        this.style.setProperty('--cortex-secondary', secondary);
+
+        // Set palette vars directly so shadow DOM doesn't rely on CSS var() inheritance
         this.style.setProperty('--primary', primary);
         this.style.setProperty('--secondary', secondary);
         this.style.setProperty('--accent', secondary);
-        this.style.setProperty('--cortex-primary', primary);
-        this.style.setProperty('--cortex-secondary', secondary);
+        this.style.setProperty('--color-main-1', primary);
+        this.style.setProperty('--color-main-2', secondary);
+        this.style.setProperty('--color-main-3', '#FFFFFF');
+        this.style.setProperty('--color-sec-1', secondary);
+        this.style.setProperty('--color-sec-2', secondary);
+        this.style.setProperty('--color-sec-3', primary);
+        this.style.setProperty('--color-sec-4', secondary);
+
+        // Gradients built from live values
+        this.style.setProperty('--cortex-header-gradient', `linear-gradient(180deg, ${primary} 0%, ${secondary} 100%)`);
+        this.style.setProperty('--cortex-button-gradient', `linear-gradient(90deg, ${primary} 0%, ${secondary} 100%)`);
+        this.style.setProperty('--cortex-icon-gradient',   `linear-gradient(90deg, ${primary} 0%, ${secondary} 100%)`);
         // this.style.setProperty('--cortex-header-gradient', `linear-gradient(360deg, ${secondary} -68.13%, #858B89 15.94%, ${primary} 100%)`);
         // this.style.setProperty('--cortex-button-gradient', `linear-gradient(270deg, ${secondary} 0%, #858B89 50%, ${primary} 100%)`);
         // this.style.setProperty('--cortex-icon-gradient', `linear-gradient(90deg, ${secondary} 0%, #949791 15.87%, ${primary} 68.27%)`);

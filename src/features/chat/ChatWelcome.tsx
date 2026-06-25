@@ -43,7 +43,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
     <div className="flex flex-col h-full bg-background overflow-hidden">
       {/* Gradient Header */}
       <div 
-        className="relative bg-main-2 px-6 pt-6 sm:pt-8 pb-8 sm:pb-10 overflow-hidden shrink-0 border-b border-gray-200"
+        className="relative bg-cortex-header-gradient px-6 pt-6 sm:pt-8 pb-8 sm:pb-10 overflow-hidden shrink-0 border-b border-gray-200"
         style={{ height: `min(${style.headerHeight}, 25vh)`, minHeight: "130px" }}
       >
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -99,7 +99,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
               <button
                 key={faq.id}
                 onClick={() => onOptionSelect(faq)}
-                className={`w-full max-w-[368px] shrink-0 rounded-[12px] bg-[#F0F0F0] text-main-2 text-[15px] font-medium hover:brightness-95 transition-all flex items-center justify-center text-center px-4 py-3 min-h-[58px] shadow-sm`}
+                className={`w-full max-w-[368px] shrink-0 rounded-[12px] bg-main-1 text-white text-[15px] font-medium hover:brightness-95 transition-all flex items-center justify-center text-center px-4 py-3 min-h-[58px] shadow-sm`}
               >
                 {faq.question}
               </button>
@@ -120,7 +120,7 @@ export const ChatWelcome = ({ role, onClose, onOptionSelect, onRequestChange, on
           )}
           <button
             onClick={onChatWithUs}
-            className="w-full bg-main-2 py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:bg-main-1 hover:text-[#F0F0F0] font-semibold transition-all shadow-md active:scale-[0.98]"
+            className="w-full bg-main-2 py-3 sm:py-3.5 px-4 rounded-xl text-white text-[17px] sm:text-[18px] hover:brightness-90 font-semibold transition-all shadow-md active:scale-[0.98]"
           >
             {content.welcome.chatBtn}
           </button>

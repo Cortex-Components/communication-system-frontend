@@ -5,6 +5,12 @@ import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  console.log("process.cwd() inside config:", process.cwd());
+  console.log("mode inside config:", mode);
+  console.log("VITE_PORT in env:", env.VITE_PORT);
+  console.log("All VITE_ keys loaded:", Object.keys(env).filter(k => k.startsWith("VITE_")));
+  console.log("VITE_COLOR_PRIMARY loaded in config:", env.VITE_COLOR_PRIMARY);
+  console.log("VITE_COLOR_SECONDARY loaded in config:", env.VITE_COLOR_SECONDARY);
   return {
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),

@@ -185,7 +185,7 @@ export const ChatFollowUp = ({ onClose, onBack, onOptionSelect, onChatSelect, on
                 <button
                   key={option}
                   onClick={() => onOptionSelect(option)}
-                  className="w-full max-w-[368px] shrink-0 rounded-[12px] bg-slate-100 text-cortex-black text-base font-medium hover:brightness-95 transition-all flex items-center justify-center px-4"
+                  className="w-full max-w-[368px] shrink-0 rounded-[12px] bg-main-1 text-white text-base font-medium hover:brightness-95 transition-all flex items-center justify-center px-4"
                   style={{ height: style.quickReplyHeight }}
                 >
                   {option}

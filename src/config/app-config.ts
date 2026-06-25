@@ -260,8 +260,8 @@ export const APP_CONFIG: AppConfig = {
         borderRadius: "24px",
       },
       gradients: {
-        header: `linear-gradient(180deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%)`,
-        button: `linear-gradient(90deg, rgba(12, 22, 31, 1) 0%, rgba(24, 41, 61, 1) 0%, rgba(255, 255, 255, 1) 100%)`,
+        header: `var(--cortex-header-gradient)`,
+        button: `var(--cortex-button-gradient)`,
       }
     },
 
